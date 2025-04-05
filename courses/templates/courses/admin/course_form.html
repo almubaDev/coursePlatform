@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Curso{% else %}Crear Curso{% endif %} - Estudia Rápido
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .course-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-preview {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .preview-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .image-placeholder {
+        width: 100%;
+        height: 180px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .course-help-text {
+        background-color: var(--light);
+        border-left: 4px solid var(--secondary);
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="course-form-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 style="color: var(--primary);">
+                {% if form.instance.pk %}
+                    Editar Curso
+                {% else %}
+                    Crear Nuevo Curso
+                {% endif %}
+            </h1>
+            <a href="{% url 'courses:admin_course_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver a la lista
+            </a>
+        </div>
+        
+        <div class="course-help-text mb-4">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Completa el formulario con la información del curso. Recuerda que un buen título y descripción son esenciales para atraer a los estudiantes.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.title.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.slug.id_for_label }}" class="form-label">{{ form.slug.label }}</label>
+                                {{ form.slug }}
+                                {% if form.slug.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.slug.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">{{ form.slug.help_text }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-preview">
+                                <h5 class="text-center mb-3">Vista previa</h5>
+                                
+                                {% if form.instance.image %}
+                                    <img src="{{ form.instance.image.url }}" alt="Vista previa" class="preview-image" id="imagePreview">
+                                {% else %}
+                                    <div class="image-placeholder" id="imagePlaceholder">
+                                        <i class="fas fa-image fa-3x text-secondary"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
+                                    {{ form.image }}
+                                    {% if form.image.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.image.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.is_published }}
+                                        <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                                            {{ form.is_published.label }}
+                                        </label>
+                                    </div>
+                                    {% if form.is_published.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.is_published.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.is_published.help_text }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'courses:admin_course_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Curso
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-generar slug a partir del título
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+        const slugInput = document.getElementById('{{ form.slug.id_for_label }}');
+        
+        // Solo genera el slug automáticamente si el campo está vacío
+        titleInput.addEventListener('keyup', function() {
+            if (!slugInput.value) {
+                slugInput.value = titleInput.value
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/[\s_-]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+            }
+        });
+        
+        // Vista previa de imagen
+        const imageInput = document.getElementById('{{ form.image.id_for_label }}');
+        const imagePreview = document.getElementById('imagePreview');
+        const imagePlaceholder = document.getElementById('imagePlaceholder');
+        
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        if (imagePreview) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                            if (imagePlaceholder) imagePlaceholder.style.display = 'none';
+                        } else if (imagePlaceholder) {
+                            const newImage = document.createElement('img');
+                            newImage.src = e.target.result;
+                            newImage.alt = 'Vista previa';
+                            newImage.className = 'preview-image';
+                            newImage.id = 'imagePreview';
+                            
+                            imagePlaceholder.parentNode.replaceChild(newImage, imagePlaceholder);
+                        }
+                    }
+                    
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

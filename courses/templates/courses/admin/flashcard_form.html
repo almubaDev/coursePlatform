@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Flashcard{% else %}Crear Flashcard{% endif %} - Estudia Rápido
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .flashcard-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .flashcard-help-text {
+        background-color: var(--light);
+        border-left: 4px solid var(--secondary);
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .module-badge {
+        background-color: var(--secondary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .section-badge {
+        background-color: var(--accent);
+        color: #333;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .flashcard-preview {
+        perspective: 1000px;
+        height: 300px;
+        margin: 30px auto;
+        max-width: 500px;
+    }
+    
+    .flashcard-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+    }
+    
+    .flashcard-preview.flipped .flashcard-inner {
+        transform: rotateY(180deg);
+    }
+    
+    .flashcard-front, .flashcard-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .flashcard-front {
+        background-color: var(--primary);
+        color: white;
+    }
+    
+    .flashcard-back {
+        background-color: var(--light);
+        color: #333;
+        transform: rotateY(180deg);
+    }
+    
+    .flashcard-text {
+        font-size: 1.5rem;
+        word-break: break-word;
+    }
+    
+    .flashcard-flip-btn {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--secondary);
+        border: none;
+        color: white;
+        border-radius: 20px;
+        padding: 5px 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="flashcard-form-container">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' course.slug %}">{{ course.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_section_list' module.id %}">Secciones</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_activity_list' section.id %}">Actividades</a></li>
+                <li class="breadcrumb-item active">
+                    {% if form.instance.pk %}Editar Flashcard{% else %}Crear Flashcard{% endif %}
+                </li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 style="color: var(--primary);">
+                {% if form.instance.pk %}
+                    Editar Flashcard
+                {% else %}
+                    Crear Nueva Flashcard
+                {% endif %}
+            </h1>
+            <a href="{% url 'courses:admin_activity_list' section.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver a actividades
+            </a>
+        </div>
+        
+        <div class="badges-container">
+            <span class="course-badge">
+                <i class="fas fa-book me-1"></i>{{ course.title }}
+            </span>
+            <br>
+            <span class="module-badge">
+                <i class="fas fa-cube me-1"></i>{{ module.title }}
+            </span>
+            <br>
+            <span class="section-badge">
+                <i class="fas fa-layer-group me-1"></i>{{ section.title }}
+            </span>
+        </div>
+        
+        <div class="flashcard-help-text mb-4">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Las flashcards son tarjetas de aprendizaje con una pregunta en el frente y una respuesta en el reverso. Son útiles para memorizar conceptos importantes.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post" novalidate id="flashcardForm">
+                    {% csrf_token %}
+                    {{ form.section }}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.question.id_for_label }}" class="form-label">{{ form.question.label }}</label>
+                        {{ form.question }}
+                        {% if form.question.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.question.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.answer.id_for_label }}" class="form-label">{{ form.answer.label }}</label>
+                        {{ form.answer }}
+                        {% if form.answer.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.answer.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.order.id_for_label }}" class="form-label">{{ form.order.label }}</label>
+                        {{ form.order }}
+                        {% if form.order.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.order.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Número de orden para mostrar esta flashcard en la sección.</div>
+                    </div>
+                    
+                    <h5 class="mt-4 mb-3 text-center">Vista previa de la flashcard</h5>
+                    
+                    <div class="flashcard-preview" id="flashcardPreview">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">
+                                <div class="flashcard-text" id="questionPreview">
+                                    {% if form.instance.question %}
+                                        {{ form.instance.question }}
+                                    {% else %}
+                                        Aquí aparecerá la pregunta...
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flashcard-back">
+                                <div class="flashcard-text" id="answerPreview">
+                                    {% if form.instance.answer %}
+                                        {{ form.instance.answer }}
+                                    {% else %}
+                                        Aquí aparecerá la respuesta...
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="flashcard-flip-btn" id="flipButton">
+                            Voltear tarjeta
+                        </button>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'courses:admin_activity_list' section.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Flashcard
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elementos del DOM
+        const questionInput = document.getElementById('{{ form.question.id_for_label }}');
+        const answerInput = document.getElementById('{{ form.answer.id_for_label }}');
+        const questionPreview = document.getElementById('questionPreview');
+        const answerPreview = document.getElementById('answerPreview');
+        const flashcardPreview = document.getElementById('flashcardPreview');
+        const flipButton = document.getElementById('flipButton');
+        
+        // Función para actualizar la vista previa
+        function updatePreview() {
+            const question = questionInput.value.trim();
+            const answer = answerInput.value.trim();
+            
+            questionPreview.textContent = question || 'Aquí aparecerá la pregunta...';
+            answerPreview.textContent = answer || 'Aquí aparecerá la respuesta...';
+        }
+        
+        // Actualizar vista previa al cambiar los inputs
+        questionInput.addEventListener('input', updatePreview);
+        answerInput.addEventListener('input', updatePreview);
+        
+        // Función para voltear la tarjeta
+        flipButton.addEventListener('click', function() {
+            flashcardPreview.classList.toggle('flipped');
+            
+            if (flashcardPreview.classList.contains('flipped')) {
+                flipButton.textContent = 'Ver pregunta';
+            } else {
+                flipButton.textContent = 'Voltear tarjeta';
+            }
+        });
+        
+        // Inicializar la vista previa
+        updatePreview();
+    });
+</script>
+{% endblock %}

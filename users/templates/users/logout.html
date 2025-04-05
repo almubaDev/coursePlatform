@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sesión cerrada - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logout-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .logout-icon {
+        font-size: 4rem;
+        color: var(--secondary);
+        margin-bottom: 1.5rem;
+    }
+    
+    .logout-actions {
+        margin-top: 2rem;
+    }
+    
+    .btn-login {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .btn-home {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="logout-container">
+                <div class="logout-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                
+                <h2 class="mb-3" style="color: var(--primary);">Sesión cerrada</h2>
+                <p class="lead mb-4">Has cerrado sesión correctamente en Estudia Rápido.</p>
+                
+                <div class="logout-actions">
+                    <a href="{% url 'users:login' %}" class="btn btn-primary btn-login me-2">
+                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar sesión nuevamente
+                    </a>
+                    <a href="{% url 'home:index' %}" class="btn btn-secondary btn-home">
+                        <i class="fas fa-home me-2"></i>Ir al inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

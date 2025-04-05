@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Sección{% else %}Crear Sección{% endif %} - Estudia Rápido
+{% endblock %}
+
+{% block extra_css %}
+<!-- SimpleMDE - Markdown Editor -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+
+<style>
+    .section-form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .section-help-text {
+        background-color: var(--light);
+        border-left: 4px solid var(--secondary);
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .module-badge {
+        background-color: var(--secondary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .markdown-guide {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+    
+    .markdown-guide h5 {
+        margin-bottom: 10px;
+        color: var(--primary);
+    }
+    
+    .markdown-guide-item {
+        margin-bottom: 8px;
+    }
+    
+    /* Estilos para el editor SimpleMDE */
+    .CodeMirror {
+        height: 400px;
+        border-radius: 4px;
+    }
+    
+    .editor-toolbar {
+        border-radius: 4px;
+    }
+    
+    .preview-container {
+        margin-top: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+    }
+    
+    .preview-container h5 {
+        margin-bottom: 15px;
+        color: var(--primary);
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    
+    /* Estilos para el contenido Markdown renderizado */
+    .markdown-preview h1, 
+    .markdown-preview h2, 
+    .markdown-preview h3 {
+        color: var(--primary);
+        margin-top: 1em;
+        margin-bottom: 0.5em;
+    }
+    
+    .markdown-preview h4, 
+    .markdown-preview h5, 
+    .markdown-preview h6 {
+        color: var(--secondary);
+        margin-top: 1em;
+        margin-bottom: 0.5em;
+    }
+    
+    .markdown-preview blockquote {
+        border-left: 4px solid var(--accent);
+        padding-left: 15px;
+        color: #666;
+        margin: 1em 0;
+    }
+    
+    .markdown-preview pre {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+    }
+    
+    .markdown-preview table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+    }
+    
+    .markdown-preview th, 
+    .markdown-preview td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    
+    .markdown-preview th {
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+    
+    .markdown-preview tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .markdown-preview img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="section-form-container">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' course.slug %}">{{ course.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_section_list' module.id %}">Secciones</a></li>
+                <li class="breadcrumb-item active">
+                    {% if form.instance.pk %}Editar Sección{% else %}Crear Sección{% endif %}
+                </li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 style="color: var(--primary);">
+                {% if form.instance.pk %}
+                    Editar Sección
+                {% else %}
+                    Crear Nueva Sección
+                {% endif %}
+            </h1>
+            <a href="{% url 'courses:admin_section_list' module.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver a secciones
+            </a>
+        </div>
+        
+        <div class="badges-container">
+            <span class="course-badge">
+                <i class="fas fa-book me-1"></i>{{ course.title }}
+            </span>
+            <br>
+            <span class="module-badge">
+                <i class="fas fa-cube me-1"></i>{{ module.title }}
+            </span>
+        </div>
+        
+        <div class="section-help-text mb-4">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Las secciones contienen el contenido principal de enseñanza. Utiliza formato Markdown para dar estilo al contenido y añade actividades interactivas después de guardar la sección.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form.module }}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.order.id_for_label }}" class="form-label">{{ form.order.label }}</label>
+                        {{ form.order }}
+                        {% if form.order.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.order.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{{ form.order.help_text }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.content.id_for_label }}" class="form-label">{{ form.content.label }}</label>
+                        {{ form.content }}
+                        {% if form.content.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.content.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{{ form.content.help_text }}</div>
+                    </div>
+                    
+                    <div class="preview-container d-none" id="previewContainer">
+                        <h5><i class="fas fa-eye me-2"></i>Vista previa del contenido</h5>
+                        <div class="markdown-preview" id="markdownPreview"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'courses:admin_section_list' module.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary me-2" id="previewButton">
+                                <i class="fas fa-eye me-2"></i>Previsualizar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Guardar Sección
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="markdown-guide mt-4">
+            <h5><i class="fas fa-book me-2"></i>Guía rápida de Markdown</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="markdown-guide-item">
+                        <strong># Título</strong> - Encabezado nivel 1
+                    </div>
+                    <div class="markdown-guide-item">
+                        <strong>## Subtítulo</strong> - Encabezado nivel 2
+                    </div>
+                    <div class="markdown-guide-item">
+                        <strong>*texto*</strong> - Texto en cursiva
+                    </div>
+                    <div class="markdown-guide-item">
+                        <strong>**texto**</strong> - Texto en negrita
+                    </div>
+                    <div class="markdown-guide-item">
+                        <strong>- elemento</strong> - Elemento de lista
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="markdown-guide-item">
+                        <strong>1. elemento</strong> - Lista numerada
+                    </div>
+                    <div class="markdown-guide-item">
+                        <strong>[enlace](url)</strong> - Enlace
+                    </div>
+                    <div class="markdown-guide-item">
+                        <strong>![alt](url)</strong> - Imagen
+                    </div>
+                    <div class="markdown-guide-item">
+                        <strong>> cita</strong> - Bloque de cita
+                    </div>
+                    <div class="markdown-guide-item">
+                        <strong>```código```</strong> - Bloque de código
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if form.instance.pk %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Actividades Interactivas</h5>
+                </div>
+                <div class="card-body">
+                    <p>Después de guardar la sección, puedes añadir actividades interactivas que complementen el contenido.</p>
+                    <div class="row mt-3">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-grid">
+                                <a href="{% url 'courses:admin_flashcard_create' form.instance.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-card-blank me-2"></i>Añadir Flashcards
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-grid">
+                                <a href="{% url 'courses:admin_concept_connection_create' form.instance.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-link me-2"></i>Añadir Conexión de Conceptos
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-grid">
+                                <a href="{% url 'courses:admin_multiple_choice_create' form.instance.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-question-circle me-2"></i>Añadir Test de Alternativas
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid mt-2">
+                        <a href="{% url 'courses:admin_activity_list' form.instance.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-tasks me-2"></i>Gestionar Todas las Actividades
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SimpleMDE - Markdown Editor -->
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+<!-- Marked.js para renderizar Markdown -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar SimpleMDE
+        const simplemde = new SimpleMDE({
+            element: document.getElementById("{{ form.content.id_for_label }}"),
+            spellChecker: false,
+            autosave: {
+                enabled: true,
+                uniqueId: "section_{{ form.instance.pk|default:'new' }}",
+                delay: 1000,
+            },
+            placeholder: "Escribe aquí el contenido en formato Markdown...",
+            toolbar: [
+                "bold", "italic", "heading", "|",
+                "quote", "unordered-list", "ordered-list", "|",
+                "link", "image", "table", "|",
+                "preview", "side-by-side", "fullscreen", "|",
+                "guide"
+            ],
+            renderingConfig: {
+                singleLineBreaks: false,
+                codeSyntaxHighlighting: true,
+            }
+        });
+        
+        // Botón de previsualización 
+        const previewButton = document.getElementById('previewButton');
+        const previewContainer = document.getElementById('previewContainer');
+        const markdownPreview = document.getElementById('markdownPreview');
+        
+        previewButton.addEventListener('click', function() {
+            const content = simplemde.value();
+            
+            if (content.trim() === "") {
+                markdownPreview.innerHTML = "<p class='text-muted'>No hay contenido para mostrar.</p>";
+            } else {
+                // Utilizar marked.js para renderizar el Markdown
+                markdownPreview.innerHTML = marked.parse(content);
+            }
+            
+            // Mostrar la vista previa
+            previewContainer.classList.remove('d-none');
+            
+            // Scroll al contenedor de vista previa
+            previewContainer.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+</script>
+{% endblock %}

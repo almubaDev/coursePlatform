@@ -1,0 +1,548 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Actividades de {{ section.title }} - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activity-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 20px;
+    }
+    
+    .activity-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .activity-header {
+        background-color: var(--secondary);
+        color: white;
+        padding: 15px 20px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    
+    .activity-icon {
+        font-size: 2rem;
+        margin-right: 15px;
+    }
+    
+    .activity-type {
+        background-color: rgba(0,0,0,0.1);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-right: 10px;
+    }
+    
+    .section-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .course-badge {
+        background-color: var(--accent);
+        color: #333;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .module-badge {
+        background-color: var(--secondary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .activity-actions {
+        text-align: right;
+    }
+    
+    .activity-count {
+        background-color: rgba(0,0,0,0.1);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        margin-left: 10px;
+    }
+    
+    .btn-actions {
+        transition: all 0.2s ease;
+    }
+    
+    .btn-actions:hover {
+        transform: scale(1.05);
+    }
+    
+    .content-preview {
+        max-height: 150px;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .activity-tabs .nav-link {
+        color: var(--primary);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 0;
+        font-weight: 500;
+    }
+    
+    .activity-tabs .nav-link.active {
+        background-color: var(--primary);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Migas de pan -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' course.slug %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:admin_section_list' module.id %}">Secciones</a></li>
+            <li class="breadcrumb-item active">Actividades</li>
+        </ol>
+    </nav>
+    
+    <!-- Encabezado de la sección -->
+    <div class="section-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="course-badge">
+                    <i class="fas fa-book me-1"></i>{{ course.title }}
+                </span>
+                <br>
+                <span class="module-badge">
+                    <i class="fas fa-cube me-1"></i>{{ module.title }}
+                </span>
+                <h1 class="mb-0">{{ section.title }}</h1>
+            </div>
+            <a href="{% url 'courses:admin_section_list' module.id %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver a secciones
+            </a>
+        </div>
+    </div>
+    
+    <div class="row align-items-center mb-4">
+        <div class="col-md-7">
+            <h2 style="color: var(--primary);">Actividades Interactivas</h2>
+            <p class="text-muted">Gestiona las actividades de aprendizaje para esta sección.</p>
+        </div>
+        <div class="col-md-5 text-md-end">
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="addActivityDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-plus me-2"></i>Añadir Actividad
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="addActivityDropdown">
+                    <li><a class="dropdown-item" href="{% url 'courses:admin_flashcard_create' section.id %}">
+                        <i class="fas fa-card-blank me-2"></i>Flashcards
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'courses:admin_concept_connection_create' section.id %}">
+                        <i class="fas fa-link me-2"></i>Conexión de Conceptos
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'courses:admin_multiple_choice_create' section.id %}">
+                        <i class="fas fa-question-circle me-2"></i>Test de Alternativas
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Previsualización del contenido de la sección -->
+    {% if section.content %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Contenido de la Sección</h5>
+            </div>
+            <div class="card-body">
+                <div class="content-preview">
+                    {{ section.content|linebreaksbr|truncatewords:100 }}
+                    {% if section.content|wordcount > 100 %}
+                        <p class="text-end mb-0">
+                            <a href="{% url 'courses:admin_section_update' section.id %}" class="text-primary">Ver contenido completo...</a>
+                        </p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'courses:admin_section_update' section.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-edit me-2"></i>Editar Contenido
+                </a>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Pestañas para las diferentes actividades -->
+    <ul class="nav nav-tabs activity-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all" role="tab">
+                Todas <span class="activity-count">{{ flashcards.count|add:concept_connections.count|add:multiple_choice_tests.count }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="flashcards-tab" data-bs-toggle="tab" href="#flashcards" role="tab">
+                Flashcards <span class="activity-count">{{ flashcards.count }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="connections-tab" data-bs-toggle="tab" href="#connections" role="tab">
+                Conexiones <span class="activity-count">{{ concept_connections.count }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tests-tab" data-bs-toggle="tab" href="#tests" role="tab">
+                Tests <span class="activity-count">{{ multiple_choice_tests.count }}</span>
+            </a>
+        </li>
+    </ul>
+    
+    <div class="tab-content">
+        <!-- Todas las actividades -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+            {% if flashcards.count == 0 and concept_connections.count == 0 and multiple_choice_tests.count == 0 %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-tasks fa-4x text-secondary"></i>
+                    </div>
+                    <h3>No hay actividades todavía</h3>
+                    <p class="lead text-muted">Comienza a crear actividades interactivas para complementar el contenido de esta sección.</p>
+                </div>
+            {% else %}
+                <!-- Flashcards -->
+                {% for flashcard in flashcards %}
+                    <div class="card activity-card">
+                        <div class="activity-header d-flex align-items-center">
+                            <div class="activity-icon">
+                                <i class="fas fa-card-blank"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <span class="activity-type">Flashcard</span>
+                                <h4 class="mb-0">{{ flashcard.question|truncatechars:50 }}</h4>
+                            </div>
+                            <div class="activity-actions">
+                                <a href="{% url 'courses:admin_flashcard_update' flashcard.id %}" class="btn btn-sm btn-light btn-actions me-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'courses:admin_flashcard_delete' flashcard.id %}" class="btn btn-sm btn-danger btn-actions">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <h5>Pregunta:</h5>
+                                    <p>{{ flashcard.question }}</p>
+                                </div>
+                                <div class="col-md-7">
+                                    <h5>Respuesta:</h5>
+                                    <p>{{ flashcard.answer }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                <!-- Conexiones de conceptos -->
+                {% for connection in concept_connections %}
+                    <div class="card activity-card">
+                        <div class="activity-header d-flex align-items-center">
+                            <div class="activity-icon">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <span class="activity-type">Conexión de Conceptos</span>
+                                <h4 class="mb-0">{{ connection.title }}</h4>
+                            </div>
+                            <div class="activity-actions">
+                                <a href="{% url 'courses:admin_concept_connection_update' connection.id %}" class="btn btn-sm btn-light btn-actions me-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'courses:admin_concept_connection_delete' connection.id %}" class="btn btn-sm btn-danger btn-actions">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if connection.description %}
+                                <p><strong>Descripción:</strong> {{ connection.description }}</p>
+                            {% endif %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Términos:</h5>
+                                    <ul class="list-group">
+                                        {% for concept in connection.concepts.all %}
+                                            <li class="list-group-item">{{ concept.term }}</li>
+                                        {% empty %}
+                                            <li class="list-group-item text-muted">No hay términos definidos</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Definiciones:</h5>
+                                    <ul class="list-group">
+                                        {% for concept in connection.concepts.all %}
+                                            <li class="list-group-item">{{ concept.definition|truncatechars:100 }}</li>
+                                        {% empty %}
+                                            <li class="list-group-item text-muted">No hay definiciones</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                <!-- Tests de alternativas múltiples -->
+                {% for test in multiple_choice_tests %}
+                    <div class="card activity-card">
+                        <div class="activity-header d-flex align-items-center">
+                            <div class="activity-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <span class="activity-type">Test de Alternativas</span>
+                                <h4 class="mb-0">{{ test.title }}</h4>
+                            </div>
+                            <div class="activity-actions">
+                                <a href="{% url 'courses:admin_multiple_choice_update' test.id %}" class="btn btn-sm btn-light btn-actions me-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'courses:admin_multiple_choice_delete' test.id %}" class="btn btn-sm btn-danger btn-actions">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if test.description %}
+                                <p><strong>Descripción:</strong> {{ test.description }}</p>
+                            {% endif %}
+                            
+                            <h5>
+                                Preguntas: 
+                                <span class="badge bg-primary">{{ test.questions.count }}</span>
+                            </h5>
+                            
+                            <ul class="list-group">
+                                {% for question in test.questions.all|slice:":3" %}
+                                    <li class="list-group-item">
+                                        <p class="mb-1">{{ question.question_text|truncatechars:100 }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clipboard-list me-1"></i>{{ question.options.count }} opciones
+                                        </small>
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item text-muted">No hay preguntas definidas</li>
+                                {% endfor %}
+                                
+                                {% if test.questions.count > 3 %}
+                                    <li class="list-group-item text-center">
+                                        <a href="{% url 'courses:admin_multiple_choice_update' test.id %}" class="text-primary">
+                                            Ver todas las preguntas ({{ test.questions.count }})
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <!-- Solo Flashcards -->
+        <div class="tab-pane fade" id="flashcards" role="tabpanel">
+            {% if flashcards %}
+                {% for flashcard in flashcards %}
+                    <div class="card activity-card">
+                        <div class="activity-header d-flex align-items-center">
+                            <div class="activity-icon">
+                                <i class="fas fa-card-blank"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <span class="activity-type">Flashcard</span>
+                                <h4 class="mb-0">{{ flashcard.question|truncatechars:50 }}</h4>
+                            </div>
+                            <div class="activity-actions">
+                                <a href="{% url 'courses:admin_flashcard_update' flashcard.id %}" class="btn btn-sm btn-light btn-actions me-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'courses:admin_flashcard_delete' flashcard.id %}" class="btn btn-sm btn-danger btn-actions">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <h5>Pregunta:</h5>
+                                    <p>{{ flashcard.question }}</p>
+                                </div>
+                                <div class="col-md-7">
+                                    <h5>Respuesta:</h5>
+                                    <p>{{ flashcard.answer }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-card-blank fa-4x text-secondary"></i>
+                    </div>
+                    <h3>No hay flashcards</h3>
+                    <p class="text-muted">Las flashcards son útiles para el aprendizaje memorístico de conceptos clave.</p>
+                    <a href="{% url 'courses:admin_flashcard_create' section.id %}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus me-2"></i>Añadir Flashcards
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Solo Conexiones de Conceptos -->
+        <div class="tab-pane fade" id="connections" role="tabpanel">
+            {% if concept_connections %}
+                {% for connection in concept_connections %}
+                    <div class="card activity-card">
+                        <div class="activity-header d-flex align-items-center">
+                            <div class="activity-icon">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <span class="activity-type">Conexión de Conceptos</span>
+                                <h4 class="mb-0">{{ connection.title }}</h4>
+                            </div>
+                            <div class="activity-actions">
+                                <a href="{% url 'courses:admin_concept_connection_update' connection.id %}" class="btn btn-sm btn-light btn-actions me-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'courses:admin_concept_connection_delete' connection.id %}" class="btn btn-sm btn-danger btn-actions">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if connection.description %}
+                                <p><strong>Descripción:</strong> {{ connection.description }}</p>
+                            {% endif %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Términos:</h5>
+                                    <ul class="list-group">
+                                        {% for concept in connection.concepts.all %}
+                                            <li class="list-group-item">{{ concept.term }}</li>
+                                        {% empty %}
+                                            <li class="list-group-item text-muted">No hay términos definidos</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Definiciones:</h5>
+                                    <ul class="list-group">
+                                        {% for concept in connection.concepts.all %}
+                                            <li class="list-group-item">{{ concept.definition|truncatechars:100 }}</li>
+                                        {% empty %}
+                                            <li class="list-group-item text-muted">No hay definiciones</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-link fa-4x text-secondary"></i>
+                    </div>
+                    <h3>No hay ejercicios de conexión</h3>
+                    <p class="text-muted">Los ejercicios de conexión ayudan a relacionar términos con sus definiciones.</p>
+                    <a href="{% url 'courses:admin_concept_connection_create' section.id %}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus me-2"></i>Añadir Conexión de Conceptos
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Solo Tests de Alternativas -->
+        <div class="tab-pane fade" id="tests" role="tabpanel">
+            {% if multiple_choice_tests %}
+                {% for test in multiple_choice_tests %}
+                    <div class="card activity-card">
+                        <div class="activity-header d-flex align-items-center">
+                            <div class="activity-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <span class="activity-type">Test de Alternativas</span>
+                                <h4 class="mb-0">{{ test.title }}</h4>
+                            </div>
+                            <div class="activity-actions">
+                                <a href="{% url 'courses:admin_multiple_choice_update' test.id %}" class="btn btn-sm btn-light btn-actions me-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'courses:admin_multiple_choice_delete' test.id %}" class="btn btn-sm btn-danger btn-actions">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if test.description %}
+                                <p><strong>Descripción:</strong> {{ test.description }}</p>
+                            {% endif %}
+                            
+                            <h5>
+                                Preguntas: 
+                                <span class="badge bg-primary">{{ test.questions.count }}</span>
+                            </h5>
+                            
+                            <ul class="list-group">
+                                {% for question in test.questions.all %}
+                                    <li class="list-group-item">
+                                        <p class="mb-1">{{ question.question_text|truncatechars:100 }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clipboard-list me-1"></i>{{ question.options.count }} opciones
+                                        </small>
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item text-muted">No hay preguntas definidas</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-question-circle fa-4x text-secondary"></i>
+                    </div>
+                    <h3>No hay tests de alternativas</h3>
+                    <p class="text-muted">Los tests de alternativas permiten evaluar la comprensión del contenido.</p>
+                    <a href="{% url 'courses:admin_multiple_choice_create' section.id %}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus me-2"></i>Añadir Test de Alternativas
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

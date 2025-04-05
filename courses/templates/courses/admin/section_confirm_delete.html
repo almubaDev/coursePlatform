@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Eliminación de Sección - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+    
+    .section-info {
+        background-color: var(--light);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .module-badge {
+        background-color: var(--secondary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        margin-left: 10px;
+    }
+    
+    .content-preview {
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .activities-list {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+    }
+    
+    .activity-badge {
+        display: inline-block;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="delete-container">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' section.module.course.slug %}">{{ section.module.course.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_section_list' section.module.id %}">Secciones</a></li>
+                <li class="breadcrumb-item active">Eliminar Sección</li>
+            </ol>
+        </nav>
+        
+        <div class="text-center mb-4">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1 class="mb-3">Confirmar Eliminación</h1>
+            <p class="lead">¿Estás seguro de que deseas eliminar la siguiente sección?</p>
+        </div>
+        
+        <div class="alert alert-danger mb-4">
+            <p class="mb-0">
+                <strong>Advertencia:</strong> Esta acción eliminará permanentemente la sección y todas sus actividades asociadas (flashcards, ejercicios de conexión y tests). Esta acción no se puede deshacer.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <span class="course-badge">
+                        <i class="fas fa-book me-1"></i>{{ section.module.course.title }}
+                    </span>
+                    <span class="module-badge">
+                        <i class="fas fa-cube me-1"></i>{{ section.module.title }}
+                    </span>
+                </div>
+                
+                <div class="section-info">
+                    <h3 class="mb-3">{{ section.title }}</h3>
+                    
+                    <div class="mb-3">
+                        <strong>Orden:</strong> {{ section.order }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Fecha de creación:</strong> {{ section.created|date:"d/m/Y H:i" }}
+                    </div>
+                    
+                    {% if section.content %}
+                        <div class="mb-3">
+                            <strong>Vista previa del contenido:</strong>
+                            <div class="content-preview">
+                                {{ section.content|linebreaksbr|truncatewords:100 }}
+                                {% if section.content|wordcount > 100 %}
+                                    <span class="text-muted">[contenido truncado]</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% with flashcards_count=section.flashcards.count connections_count=section.concept_connections.count tests_count=section.multiple_choice_tests.count %}
+                        {% if flashcards_count > 0 or connections_count > 0 or tests_count > 0 %}
+                            <div class="mb-0">
+                                <strong>Actividades que serán eliminadas:</strong>
+                                <div class="activities-list mt-2">
+                                    {% if flashcards_count > 0 %}
+                                        <div class="activity-badge bg-primary text-white">
+                                            <i class="fas fa-card-blank me-1"></i>Flashcards: {{ flashcards_count }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if connections_count > 0 %}
+                                        <div class="activity-badge bg-success text-white">
+                                            <i class="fas fa-link me-1"></i>Conexiones de conceptos: {{ connections_count }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if tests_count > 0 %}
+                                        <div class="activity-badge bg-info text-white">
+                                            <i class="fas fa-question-circle me-1"></i>Tests de alternativas: {{ tests_count }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'courses:admin_section_list' section.module.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-2"></i>Confirmar Eliminación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

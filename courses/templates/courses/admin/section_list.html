@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Secciones de {{ module.title }} - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .section-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .section-icon {
+        font-size: 2.5rem;
+        color: var(--secondary);
+        margin-bottom: 1rem;
+    }
+    
+    .btn-actions {
+        transition: all 0.2s ease;
+    }
+    
+    .btn-actions:hover {
+        transform: scale(1.05);
+    }
+    
+    .sortable-handle {
+        cursor: move;
+        color: #adb5bd;
+    }
+    
+    .sortable-handle:hover {
+        color: var(--primary);
+    }
+    
+    .module-header {
+        background-color: var(--secondary);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .module-stats {
+        background-color: rgba(0,0,0,0.1);
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .activity-counter {
+        background-color: var(--light);
+        padding: 3px 8px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-left: 5px;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Migas de pan -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' course.slug %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item active">Secciones de {{ module.title }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Encabezado del módulo -->
+    <div class="module-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="course-badge">
+                    <i class="fas fa-book me-1"></i>{{ course.title }}
+                </span>
+                <h1 class="mb-1">{{ module.title }}</h1>
+                <p class="mb-0">
+                    <span class="module-stats">
+                        <i class="fas fa-layer-group me-1"></i> {{ sections|length }} secciones
+                    </span>
+                </p>
+            </div>
+            <a href="{% url 'courses:admin_module_list' course.slug %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver a módulos
+            </a>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: var(--primary);">Secciones</h2>
+        <a href="{% url 'courses:admin_section_create' module.id %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nueva Sección
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Las secciones contienen el contenido de aprendizaje y las actividades interactivas. Cada sección puede incluir texto en formato Markdown, flashcards, tests y ejercicios de conexión de conceptos.
+            </p>
+        </div>
+    </div>
+    
+    {% if sections %}
+        <div class="card">
+            <div class="card-header bg-light">
+                <div class="row fw-bold">
+                    <div class="col-1 text-center">#</div>
+                    <div class="col-6">Título</div>
+                    <div class="col-2 text-center">Actividades</div>
+                    <div class="col-3 text-end">Acciones</div>
+                </div>
+            </div>
+            <ul class="list-group list-group-flush sortable-sections">
+                {% for section in sections %}
+                    <li class="list-group-item" data-id="{{ section.id }}">
+                        <div class="row align-items-center">
+                            <div class="col-1 text-center">
+                                <span class="sortable-handle">
+                                    <i class="fas fa-grip-vertical"></i>
+                                </span>
+                                <span class="ms-2">{{ section.order }}</span>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="mb-0">{{ section.title }}</h5>
+                                <small class="text-muted">Actualizado: {{ section.updated|date:"d/m/Y" }}</small>
+                            </div>
+                            <div class="col-2 text-center">
+                                <div>
+                                    {% with flashcards_count=section.flashcards.count connections_count=section.concept_connections.count tests_count=section.multiple_choice_tests.count %}
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-layer-group me-1"></i>{{ flashcards_count|add:connections_count|add:tests_count }}
+                                        </span>
+                                        
+                                        {% if flashcards_count > 0 %}
+                                            <span class="activity-counter">
+                                                <i class="fas fa-card-blank"></i> {{ flashcards_count }}
+                                            </span>
+                                        {% endif %}
+                                        
+                                        {% if connections_count > 0 %}
+                                            <span class="activity-counter">
+                                                <i class="fas fa-link"></i> {{ connections_count }}
+                                            </span>
+                                        {% endif %}
+                                        
+                                        {% if tests_count > 0 %}
+                                            <span class="activity-counter">
+                                                <i class="fas fa-question"></i> {{ tests_count }}
+                                            </span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                            <div class="col-3 text-end">
+                                <div class="btn-group">
+                                    <a href="{% url 'courses:admin_section_update' section.id %}" class="btn btn-sm btn-outline-primary btn-actions">
+                                        <i class="fas fa-edit me-1"></i>Editar
+                                    </a>
+                                    <a href="{% url 'courses:admin_activity_list' section.id %}" class="btn btn-sm btn-outline-secondary btn-actions">
+                                        <i class="fas fa-tasks me-1"></i>Actividades
+                                    </a>
+                                    <a href="{% url 'courses:admin_section_delete' section.id %}" class="btn btn-sm btn-outline-danger btn-actions">
+                                        <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if section.content|length > 0 %}
+                            <div class="mt-2">
+                                <p class="mb-0 text-muted">{{ section.content|truncatechars:150|linebreaksbr }}</p>
+                            </div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-layer-group fa-4x text-secondary"></i>
+            </div>
+            <h3>No hay secciones todavía</h3>
+            <p class="lead text-muted">Comienza a crear la primera sección para este módulo haciendo clic en el botón "Nueva Sección".</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar el ordenamiento de secciones
+        const sectionsList = document.querySelector('.sortable-sections');
+        if (sectionsList) {
+            new Sortable(sectionsList, {
+                handle: '.sortable-handle',
+                animation: 150,
+                onEnd: function(evt) {
+                    // Aquí se implementaría el reordenamiento mediante AJAX
+                    console.log('Reordenamiento:', evt.oldIndex, ' -> ', evt.newIndex);
+                    // updateSectionOrder(evt.item.dataset.id, evt.newIndex);
+                }
+            });
+        }
+    });
+    
+    // Función para actualizar el orden mediante AJAX
+    function updateSectionOrder(sectionId, newPosition) {
+        // Esta función enviaría una solicitud AJAX para actualizar el orden
+        // fetch('/api/sections/reorder/', { method: 'POST', ... })
+    }
+</script>
+{% endblock %}

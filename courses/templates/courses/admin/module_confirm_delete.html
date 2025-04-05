@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Eliminación de Módulo - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+    
+    .module-info {
+        background-color: var(--light);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: N20px;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .sections-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="delete-container">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' module.course.slug %}">{{ module.course.title }}</a></li>
+                <li class="breadcrumb-item active">Eliminar Módulo</li>
+            </ol>
+        </nav>
+        
+        <div class="text-center mb-4">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1 class="mb-3">Confirmar Eliminación</h1>
+            <p class="lead">¿Estás seguro de que deseas eliminar el siguiente módulo?</p>
+        </div>
+        
+        <div class="alert alert-danger mb-4">
+            <p class="mb-0">
+                <strong>Advertencia:</strong> Esta acción eliminará permanentemente el módulo y todas sus secciones, actividades y evaluaciones asociadas. Esta acción no se puede deshacer.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <span class="course-badge mb-3">
+                    <i class="fas fa-book me-1"></i>{{ module.course.title }}
+                </span>
+                
+                <div class="module-info">
+                    <h3 class="mb-3">{{ module.title }}</h3>
+                    
+                    <div class="mb-3">
+                        <strong>Orden:</strong> {{ module.order }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Fecha de creación:</strong> {{ module.created|date:"d/m/Y H:i" }}
+                    </div>
+                    
+                    {% if module.description %}
+                        <div class="mb-3">
+                            <strong>Descripción:</strong>
+                            <p>{{ module.description }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if module.sections.count > 0 %}
+                        <div class="mb-0">
+                            <strong>Secciones ({{ module.sections.count }}):</strong>
+                            <div class="sections-list mt-2">
+                                <ul class="list-group">
+                                    {% for section in module.sections.all %}
+                                        <li class="list-group-item">
+                                            {{ section.title }}
+                                            <span class="badge bg-secondary float-end">Orden: {{ section.order }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if module.essay_test %}
+                        <div class="mt-3">
+                            <strong>Test final:</strong> {{ module.essay_test.title }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'courses:admin_module_list' module.course.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-2"></i>Confirmar Eliminación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

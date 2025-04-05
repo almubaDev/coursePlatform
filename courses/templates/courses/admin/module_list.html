@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Módulos de {{ course.title }} - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .module-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .module-icon {
+        font-size: 2.5rem;
+        color: var(--secondary);
+        margin-bottom: 1rem;
+    }
+    
+    .btn-actions {
+        transition: all 0.2s ease;
+    }
+    
+    .btn-actions:hover {
+        transform: scale(1.05);
+    }
+    
+    .sortable-handle {
+        cursor: move;
+        color: #adb5bd;
+    }
+    
+    .sortable-handle:hover {
+        color: var(--primary);
+    }
+    
+    .course-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .course-stats {
+        background-color: rgba(0,0,0,0.1);
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Encabezado del curso -->
+    <div class="course-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-1">{{ course.title }}</h1>
+                <p class="mb-0">
+                    <span class="badge {% if course.is_published %}bg-success{% else %}bg-secondary{% endif %} me-2">
+                        {% if course.is_published %}Publicado{% else %}Borrador{% endif %}
+                    </span>
+                    <span class="course-stats">
+                        <i class="fas fa-cubes me-1"></i> {{ modules|length }} módulos
+                    </span>
+                </p>
+            </div>
+            <a href="{% url 'courses:admin_course_list' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver a cursos
+            </a>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: var(--primary);">Módulos</h2>
+        <a href="{% url 'courses:admin_module_create' course.slug %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nuevo Módulo
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Los módulos son las unidades principales que componen un curso. Puedes organizar el contenido en módulos temáticos para facilitar el aprendizaje.
+            </p>
+        </div>
+    </div>
+    
+    {% if modules %}
+        <div class="card">
+            <div class="card-header bg-light">
+                <div class="row fw-bold">
+                    <div class="col-1 text-center">#</div>
+                    <div class="col-6">Título</div>
+                    <div class="col-2 text-center">Secciones</div>
+                    <div class="col-3 text-end">Acciones</div>
+                </div>
+            </div>
+            <ul class="list-group list-group-flush sortable-modules">
+                {% for module in modules %}
+                    <li class="list-group-item" data-id="{{ module.id }}">
+                        <div class="row align-items-center">
+                            <div class="col-1 text-center">
+                                <span class="sortable-handle">
+                                    <i class="fas fa-grip-vertical"></i>
+                                </span>
+                                <span class="ms-2">{{ module.order }}</span>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="mb-0">{{ module.title }}</h5>
+                                <small class="text-muted">Actualizado: {{ module.updated|date:"d/m/Y" }}</small>
+                            </div>
+                            <div class="col-2 text-center">
+                                <span class="badge bg-secondary">
+                                    {{ module.sections.count }} secciones
+                                </span>
+                            </div>
+                            <div class="col-3 text-end">
+                                <div class="btn-group">
+                                    <a href="{% url 'courses:admin_module_update' module.id %}" class="btn btn-sm btn-outline-primary btn-actions">
+                                        <i class="fas fa-edit me-1"></i>Editar
+                                    </a>
+                                    <a href="{% url 'courses:admin_section_list' module.id %}" class="btn btn-sm btn-outline-secondary btn-actions">
+                                        <i class="fas fa-list me-1"></i>Secciones
+                                    </a>
+                                    <a href="{% url 'courses:admin_module_delete' module.id %}" class="btn btn-sm btn-outline-danger btn-actions">
+                                        <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if module.description %}
+                            <div class="mt-2">
+                                <p class="mb-0 text-muted">{{ module.description|truncatechars:150 }}</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if module.essay_test %}
+                            <div class="mt-2">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-file-alt me-1"></i>Incluye test final
+                                </span>
+                            </div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-cubes fa-4x text-secondary"></i>
+            </div>
+            <h3>No hay módulos todavía</h3>
+            <p class="lead text-muted">Comienza a crear el primer módulo para este curso haciendo clic en el botón "Nuevo Módulo".</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar el ordenamiento de módulos
+        const modulesList = document.querySelector('.sortable-modules');
+        if (modulesList) {
+            new Sortable(modulesList, {
+                handle: '.sortable-handle',
+                animation: 150,
+                onEnd: function(evt) {
+                    // Aquí se implementaría el reordenamiento mediante AJAX
+                    console.log('Reordenamiento:', evt.oldIndex, ' -> ', evt.newIndex);
+                    // updateModuleOrder(evt.item.dataset.id, evt.newIndex);
+                }
+            });
+        }
+    });
+    
+    // Función para actualizar el orden mediante AJAX
+    function updateModuleOrder(moduleId, newPosition) {
+        // Esta función enviaría una solicitud AJAX para actualizar el orden
+        // fetch('/api/modules/reorder/', { method: 'POST', ... })
+    }
+</script>
+{% endblock %}

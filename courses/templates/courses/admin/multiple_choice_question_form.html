@@ -1,0 +1,598 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Pregunta{% else %}Crear Pregunta{% endif %} - Estudia Rápido
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .question-form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .question-help-text {
+        background-color: var(--light);
+        border-left: 4px solid var(--secondary);
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .module-badge {
+        background-color: var(--secondary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .section-badge {
+        background-color: var(--accent);
+        color: #333;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .test-badge {
+        background-color: #17a2b8;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .options-list {
+        margin-top: 30px;
+    }
+    
+    .option-card {
+        background-color: white;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .option-card-body {
+        padding: 15px;
+    }
+    
+    .option-remove-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        color: #dc3545;
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+    
+    .option-preview {
+        margin-top: 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        background-color: white;
+    }
+    
+    .option-preview h5 {
+        color: var(--primary);
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .preview-question {
+        background-color: var(--light);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+    
+    .preview-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .preview-option {
+        padding: 10px 15px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+    }
+    
+    .preview-option:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .preview-option.correct {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    
+    .preview-option-letter {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: var(--primary);
+        color: white;
+        margin-right: 10px;
+        font-weight: bold;
+    }
+    
+    .preview-option.correct .preview-option-letter {
+        background-color: #28a745;
+    }
+    
+    .preview-explanation {
+        margin-top: 20px;
+        background-color: #e9f7fb;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 3px solid var(--secondary);
+    }
+    
+    .no-options-message {
+        text-align: center;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="question-form-container">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' course.slug %}">{{ course.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_section_list' module.id %}">Secciones</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_activity_list' section.id %}">Actividades</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_multiple_choice_update' test.id %}">{{ test.title }}</a></li>
+                <li class="breadcrumb-item active">
+                    {% if form.instance.pk %}Editar Pregunta{% else %}Crear Pregunta{% endif %}
+                </li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 style="color: var(--primary);">
+                {% if form.instance.pk %}
+                    Editar Pregunta
+                {% else %}
+                    Crear Nueva Pregunta
+                {% endif %}
+            </h1>
+            <a href="{% url 'courses:admin_multiple_choice_update' test.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al test
+            </a>
+        </div>
+        
+        <div class="badges-container">
+            <span class="course-badge">
+                <i class="fas fa-book me-1"></i>{{ course.title }}
+            </span>
+            <br>
+            <span class="module-badge">
+                <i class="fas fa-cube me-1"></i>{{ module.title }}
+            </span>
+            <br>
+            <span class="section-badge">
+                <i class="fas fa-layer-group me-1"></i>{{ section.title }}
+            </span>
+            <br>
+            <span class="test-badge">
+                <i class="fas fa-question-circle me-1"></i>{{ test.title }}
+            </span>
+        </div>
+        
+        <div class="question-help-text mb-4">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Define la pregunta, una explicación opcional y las opciones de respuesta. Marca cuáles son las opciones correctas. Puedes tener una o varias respuestas correctas.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Información de la pregunta</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate id="questionForm">
+                    {% csrf_token %}
+                    {{ form.test }}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.question_text.id_for_label }}" class="form-label">{{ form.question_text.label }}</label>
+                        {{ form.question_text }}
+                        {% if form.question_text.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.question_text.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.explanation.id_for_label }}" class="form-label">{{ form.explanation.label }}</label>
+                        {{ form.explanation }}
+                        {% if form.explanation.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.explanation.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{{ form.explanation.help_text }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.order.id_for_label }}" class="form-label">{{ form.order.label }}</label>
+                        {{ form.order }}
+                        {% if form.order.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.order.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Número de orden para mostrar esta pregunta en el test.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar pregunta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if form.instance.pk %}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 style="color: var(--primary);">Opciones</h2>
+                <button type="button" class="btn btn-primary" id="addOptionBtn">
+                    <i class="fas fa-plus me-2"></i>Añadir opción
+                </button>
+            </div>
+            
+            <div class="options-list" id="optionsList">
+                {% if options %}
+                    {% for option in options %}
+                        <div class="option-card" data-id="{{ option.id }}">
+                            <div class="option-card-body">
+                                <button type="button" class="option-remove-btn" data-id="{{ option.id }}">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Texto de la opción</label>
+                                    <input type="text" class="form-control option-text" value="{{ option.option_text }}" data-id="{{ option.id }}">
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Orden</label>
+                                        <input type="number" class="form-control option-order" value="{{ option.order }}" min="1" data-id="{{ option.id }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check mt-4">
+                                            <input class="form-check-input option-correct" type="checkbox" {% if option.is_correct %}checked{% endif %} data-id="{{ option.id }}">
+                                            <label class="form-check-label">
+                                                Es respuesta correcta
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-sm btn-primary save-option-btn" data-id="{{ option.id }}">
+                                        <i class="fas fa-save me-1"></i>Guardar opción
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-options-message" id="noOptionsMessage">
+                        <p class="mb-0">No hay opciones definidas. Haz clic en "Añadir opción" para comenzar.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="option-preview" id="optionPreview">
+                <h5 class="text-center"><i class="fas fa-eye me-2"></i>Vista previa de la pregunta</h5>
+                
+                <div class="preview-question" id="previewQuestion">
+                    {{ form.instance.question_text }}
+                </div>
+                
+                {% if options %}
+                    <div class="preview-options">
+                        {% for option in options %}
+                            <div class="preview-option {% if option.is_correct %}correct{% endif %}">
+                                <div class="preview-option-letter">{{ forloop.counter }}</div>
+                                <div class="preview-option-text">{{ option.option_text }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if form.instance.explanation %}
+                        <div class="preview-explanation">
+                            <strong>Explicación:</strong>
+                            <p class="mb-0">{{ form.instance.explanation }}</p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted">
+                        <p>Añade opciones para ver la vista previa de la pregunta.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'courses:admin_multiple_choice_update' test.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al test
+                </a>
+                <a href="#" onclick="location.reload()" class="btn btn-primary">
+                    <i class="fas fa-sync me-2"></i>Actualizar vista
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Plantilla para nuevas opciones -->
+<template id="optionTemplate">
+    <div class="option-card" data-id="new">
+        <div class="option-card-body">
+            <button type="button" class="option-remove-btn" data-id="new">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            
+            <div class="mb-3">
+                <label class="form-label">Texto de la opción</label>
+                <input type="text" class="form-control option-text" data-id="new">
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Orden</label>
+                    <input type="number" class="form-control option-order" value="1" min="1" data-id="new">
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input option-correct" type="checkbox" data-id="new">
+                        <label class="form-check-label">
+                            Es respuesta correcta
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-sm btn-primary save-option-btn" data-id="new">
+                    <i class="fas fa-save me-1"></i>Guardar opción
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elementos DOM
+        const optionsList = document.getElementById('optionsList');
+        const addOptionBtn = document.getElementById('addOptionBtn');
+        const optionTemplate = document.getElementById('optionTemplate');
+        const noOptionsMessage = document.getElementById('noOptionsMessage');
+        
+        // Añadir una nueva opción
+        if (addOptionBtn) {
+            addOptionBtn.addEventListener('click', function() {
+                // Clonar la plantilla
+                const newOption = optionTemplate.content.cloneNode(true);
+                
+                // Añadir al DOM
+                optionsList.appendChild(newOption);
+                
+                // Ocultar mensaje de "no hay opciones"
+                if (noOptionsMessage) {
+                    noOptionsMessage.style.display = 'none';
+                }
+                
+                // Añadir event listeners al nuevo elemento
+                addOptionEventListeners();
+            });
+        }
+        
+        // Añadir event listeners a todas las opciones
+        addOptionEventListeners();
+        
+        function addOptionEventListeners() {
+            // Botones para guardar opciones
+            document.querySelectorAll('.save-option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const optionId = this.getAttribute('data-id');
+                    const cardElement = document.querySelector(`.option-card[data-id="${optionId}"]`);
+                    
+                    const textInput = cardElement.querySelector('.option-text');
+                    const orderInput = cardElement.querySelector('.option-order');
+                    const correctInput = cardElement.querySelector('.option-correct');
+                    
+                    const text = textInput.value.trim();
+                    const order = orderInput.value;
+                    const isCorrect = correctInput.checked;
+                    
+                    if (!text) {
+                        alert('Por favor, completa el texto de la opción.');
+                        return;
+                    }
+                    
+                    // Enviar datos mediante AJAX
+                    saveOption(optionId, text, order, isCorrect);
+                });
+            });
+            
+            // Botones para eliminar opciones
+            document.querySelectorAll('.option-remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const optionId = this.getAttribute('data-id');
+                    const cardElement = document.querySelector(`.option-card[data-id="${optionId}"]`);
+                    
+                    if (optionId === 'new') {
+                        // Si es una nueva opción sin guardar, simplemente eliminarla del DOM
+                        cardElement.remove();
+                        
+                        // Mostrar mensaje de "no hay opciones" si no quedan opciones
+                        if (optionsList.querySelectorAll('.option-card').length === 0 && noOptionsMessage) {
+                            noOptionsMessage.style.display = 'block';
+                        }
+                    } else {
+                        // Confirmar eliminación
+                        if (confirm('¿Estás seguro de que quieres eliminar esta opción?')) {
+                            // Enviar solicitud para eliminar la opción
+                            deleteOption(optionId);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Función para guardar una opción mediante AJAX
+        function saveOption(optionId, text, order, isCorrect) {
+            // Crear datos del formulario
+            const formData = new FormData();
+            formData.append('option_text', text);
+            formData.append('order', order);
+            formData.append('is_correct', isCorrect);
+            formData.append('option_id', optionId);
+            
+            // ID de la pregunta
+            const questionId = {{ form.instance.id }};
+            
+            // Token CSRF
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Configuración del fetch
+            const fetchOptions = {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: formData
+            };
+            
+            // Realizar la solicitud
+            fetch('{% url "courses:admin_save_option" form.instance.id %}', fetchOptions)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        
+                        // Si era una opción nueva, actualizamos su ID
+                        if (optionId === 'new') {
+                            const cardElement = document.querySelector(`.option-card[data-id="new"]`);
+                            cardElement.setAttribute('data-id', data.option_id);
+                            
+                            const elements = cardElement.querySelectorAll('[data-id="new"]');
+                            elements.forEach(el => {
+                                el.setAttribute('data-id', data.option_id);
+                            });
+                        }
+                    } else {
+                        alert('Error al guardar la opción: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ha ocurrido un error al guardar la opción.');
+                });
+        }
+        
+        // Función para eliminar una opción mediante AJAX
+        function deleteOption(optionId) {
+            // Token CSRF
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Configuración del fetch
+            const fetchOptions = {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            };
+            
+            // Realizar la solicitud
+            fetch('{% url "courses:admin_delete_option" option_id=0 %}'.replace('0', optionId), fetchOptions)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Eliminar el elemento del DOM
+                        const cardElement = document.querySelector(`.option-card[data-id="${optionId}"]`);
+                        cardElement.remove();
+                        
+                        // Mostrar mensaje de "no hay opciones" si no quedan opciones
+                        if (optionsList.querySelectorAll('.option-card').length === 0 && noOptionsMessage) {
+                            noOptionsMessage.style.display = 'block';
+                        }
+                        
+                        alert(data.message);
+                    } else {
+                        alert('Error al eliminar la opción: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ha ocurrido un error al eliminar la opción.');
+                });
+        }
+    });
+</script>
+{% endblock %}

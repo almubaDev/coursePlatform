@@ -1,0 +1,173 @@
+{# Ruta: templates/users/profile_update.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Perfil - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-update-container {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        padding: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .profile-picture-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        border: 3px solid var(--secondary);
+    }
+    
+    .avatar-placeholder {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background-color: var(--light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        border: 3px solid var(--secondary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="profile-update-container">
+                <h2 class="mb-4 text-center" style="color: var(--primary);">Editar Perfil</h2>
+                
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4 mb-md-0">
+                            <div class="profile-picture-section">
+                                <h5 class="mb-3">Foto de perfil</h5>
+                                
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="profile-picture-preview">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        <i class="fas fa-user fa-3x text-secondary"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="mt-2">
+                                    {{ form.profile_picture }}
+                                    {% if form.profile_picture.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.profile_picture.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Formatos aceptados: JPG, PNG. Tamaño máximo: 5MB.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <h5 class="mb-3">Información personal</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.first_name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 form-group">
+                                    <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.last_name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.bio.id_for_label }}">{{ form.bio.label }}</label>
+                                {{ form.bio }}
+                                {% if form.bio.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.bio.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    Cuéntanos un poco sobre ti. Esta información será visible en tu perfil.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'users:profile' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Script para previsualizar la imagen antes de cargarla
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('{{ form.profile_picture.id_for_label }}');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Buscar la imagen de preview o crear una nueva si existe un placeholder
+                        let previewImg = document.querySelector('.profile-picture-preview');
+                        const placeholderDiv = document.querySelector('.avatar-placeholder');
+                        
+                        if (previewImg) {
+                            previewImg.src = e.target.result;
+                        } else if (placeholderDiv) {
+                            placeholderDiv.innerHTML = '';
+                            previewImg = document.createElement('img');
+                            previewImg.classList.add('profile-picture-preview');
+                            previewImg.src = e.target.result;
+                            placeholderDiv.parentNode.replaceChild(previewImg, placeholderDiv);
+                        }
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

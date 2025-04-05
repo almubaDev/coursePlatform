@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Administración de Cursos - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .course-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .course-image {
+        height: 160px;
+        object-fit: cover;
+    }
+    
+    .course-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .btn-actions {
+        transition: all 0.2s ease;
+    }
+    
+    .btn-actions:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0" style="color: var(--primary);">Administración de Cursos</h1>
+        <a href="{% url 'courses:admin_course_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Crear Nuevo Curso
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Esta sección te permite gestionar todos los cursos de la plataforma. Puedes crear nuevos cursos, editar los existentes o eliminarlos si es necesario.
+            </p>
+        </div>
+    </div>
+    
+    {% if courses %}
+        <div class="row g-4">
+            {% for course in courses %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card course-card h-100">
+                        {% if course.image %}
+                            <img src="{{ course.image.url }}" class="card-img-top course-image" alt="{{ course.title }}">
+                        {% else %}
+                            <div class="card-img-top course-image bg-light d-flex justify-content-center align-items-center">
+                                <i class="fas fa-book fa-3x text-secondary"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="course-status">
+                            {% if course.is_published %}
+                                <span class="badge bg-success">Publicado</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Borrador</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: var(--primary);">{{ course.title }}</h5>
+                            <p class="card-text small text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i> Creado: {{ course.created|date:"d/m/Y" }}
+                                <br>
+                                <i class="fas fa-edit me-1"></i> Actualizado: {{ course.updated|date:"d/m/Y" }}
+                            </p>
+                            <p class="card-text">{{ course.description|truncatechars:120 }}</p>
+                        </div>
+                        
+                        <div class="card-footer bg-white border-top-0">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'courses:admin_course_update' course.slug %}" class="btn btn-sm btn-outline-primary btn-actions">
+                                    <i class="fas fa-edit me-1"></i>Editar
+                                </a>
+                                <a href="{% url 'courses:admin_module_list' course.slug %}" class="btn btn-sm btn-outline-secondary btn-actions">
+                                    <i class="fas fa-cubes me-1"></i>Módulos
+                                </a>
+                                <a href="{% url 'courses:admin_course_delete' course.slug %}" class="btn btn-sm btn-outline-danger btn-actions">
+                                    <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-books fa-4x text-secondary"></i>
+            </div>
+            <h3>No hay cursos todavía</h3>
+            <p class="lead text-muted">Comienza a crear tu primer curso haciendo clic en el botón "Crear Nuevo Curso".</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
