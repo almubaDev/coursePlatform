@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Eliminación de Test - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+    
+    .test-info {
+        background-color: var(--light);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .module-badge {
+        background-color: var(--secondary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        margin-left: 10px;
+    }
+    
+    .questions-list {
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .question-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .question-item:last-child {
+        border-bottom: none;
+    }
+    
+    .question-type {
+        font-size: 0.8rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        background-color: #e9ecef;
+        margin-left: 10px;
+    }
+    
+    .attempts-warning {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin-top: 15px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="delete-container">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' test.module.course.slug %}">{{ test.module.course.title }}</a></li>
+                <li class="breadcrumb-item active">Eliminar Test</li>
+            </ol>
+        </nav>
+        
+        <div class="text-center mb-4">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1 class="mb-3">Confirmar Eliminación</h1>
+            <p class="lead">¿Estás seguro de que deseas eliminar este test de desarrollo?</p>
+        </div>
+        
+        <div class="alert alert-danger mb-4">
+            <p class="mb-0">
+                <strong>Advertencia:</strong> Esta acción eliminará permanentemente el test, todas sus preguntas asociadas y todos los registros de intentos de los estudiantes. Esta acción no se puede deshacer.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <span class="course-badge">
+                        <i class="fas fa-book me-1"></i>{{ test.module.course.title }}
+                    </span>
+                    <span class="module-badge">
+                        <i class="fas fa-cube me-1"></i>{{ test.module.title }}
+                    </span>
+                </div>
+                
+                <div class="test-info">
+                    <h3 class="mb-3">{{ test.title }}</h3>
+                    
+                    {% if test.description %}
+                        <div class="mb-3">
+                            <strong>Descripción:</strong>
+                            <p>{{ test.description }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <strong>Preguntas ({{ test.questions.count }}):</strong>
+                        
+                        {% if test.questions.count > 0 %}
+                            <div class="questions-list">
+                                {% for question in test.questions.all %}
+                                    <div class="question-item">
+                                        <div class="d-flex align-items-center">
+                                            <strong class="me-2">{{ forloop.counter }}.</strong>
+                                            {{ question.question_text|truncatechars:100 }}
+                                            <span class="question-type">{{ question.get_question_type_display }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No hay preguntas definidas para este test.</p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if test.attempts.count > 0 %}
+                        <div class="attempts-warning">
+                            <p class="mb-0">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong>Atención:</strong> Este test tiene {{ test.attempts.count }} intentos realizados por estudiantes. Al eliminar el test, también se eliminarán todos estos registros y evaluaciones.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'courses:admin_module_list' test.module.course.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-2"></i>Confirmar Eliminación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

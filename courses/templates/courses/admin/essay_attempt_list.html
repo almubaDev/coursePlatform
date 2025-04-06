@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Intentos de Tests de Desarrollo - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .attempts-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .badge-submitted {
+        background-color: #6c757d;
+    }
+    
+    .badge-processing {
+        background-color: #0dcaf0;
+    }
+    
+    .badge-analyzed {
+        background-color: #198754;
+    }
+    
+    .badge-failed {
+        background-color: #dc3545;
+    }
+    
+    .filter-bar {
+        background-color: var(--light);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .table-responsive {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    }
+    
+    .table thead th {
+        background-color: var(--secondary);
+        color: white;
+        border: none;
+    }
+    
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    
+    .avatar-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+    
+    .user-link {
+        font-weight: 500;
+        color: var(--primary);
+        text-decoration: none;
+    }
+    
+    .user-link:hover {
+        text-decoration: underline;
+    }
+    
+    .test-title {
+        font-weight: 500;
+    }
+    
+    .no-attempts {
+        text-align: center;
+        padding: 3rem;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    }
+    
+    .no-attempts-icon {
+        font-size: 3rem;
+        color: var(--secondary);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="attempts-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2">Intentos de Tests de Desarrollo</h1>
+                <p class="lead mb-0">Administración de intentos y evaluaciones de estudiantes</p>
+            </div>
+            <a href="{% url 'courses:admin_course_list' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Cursos
+            </a>
+        </div>
+    </div>
+    
+    <div class="filter-bar">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="user" class="form-label">Estudiante</label>
+                <input type="text" name="user" id="user" class="form-control" placeholder="Buscar por nombre o email" value="{{ request.GET.user|default:'' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="test" class="form-label">Test</label>
+                <input type="text" name="test" id="test" class="form-control" placeholder="Buscar por título" value="{{ request.GET.test|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Estado</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="submitted" {% if request.GET.status == 'submitted' %}selected{% endif %}>Enviado</option>
+                    <option value="processing" {% if request.GET.status == 'processing' %}selected{% endif %}>Procesando</option>
+                    <option value="analyzed" {% if request.GET.status == 'analyzed' %}selected{% endif %}>Analizado</option>
+                    <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Fallido</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="date" class="form-label">Fecha</label>
+                <input type="date" name="date" id="date" class="form-control" value="{{ request.GET.date|default:'' }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2 w-100">
+                    <i class="fas fa-search me-2"></i>Filtrar
+                </button>
+                {% if request.GET %}
+                    <a href="{% url 'courses:admin_essay_attempt_list' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-times me-2"></i>Limpiar
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    
+    {% if attempts %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Estudiante</th>
+                        <th>Test</th>
+                        <th>Módulo/Curso</th>
+                        <th>Fecha de envío</th>
+                        <th>Estado</th>
+                        <th>Calificación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in attempts %}
+                        <tr>
+                            <td>{{ attempt.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if attempt.user.profile_picture %}
+                                        <img src="{{ attempt.user.profile_picture.url }}" alt="{{ attempt.user.get_full_name }}" class="avatar-sm me-2">
+                                    {% else %}
+                                        <div class="avatar-placeholder me-2">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    {% endif %}
+                                    <a href="#" class="user-link">{{ attempt.user.get_full_name }}</a>
+                                </div>
+                            </td>
+                            <td class="test-title">{{ attempt.test.title }}</td>
+                            <td>
+                                <small class="d-block">{{ attempt.test.module.title }}</small>
+                                <small class="text-muted">{{ attempt.test.module.course.title }}</small>
+                            </td>
+                            <td>{{ attempt.date_submitted|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if attempt.status == 'submitted' %}
+                                    <span class="badge badge-submitted">Enviado</span>
+                                {% elif attempt.status == 'processing' %}
+                                    <span class="badge badge-processing">Procesando</span>
+                                {% elif attempt.status == 'analyzed' %}
+                                    <span class="badge badge-analyzed">Analizado</span>
+                                {% elif attempt.status == 'failed' %}
+                                    <span class="badge badge-failed">Fallido</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attempt.score is not None %}
+                                    {{ attempt.score }}/100
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'courses:admin_essay_attempt_detail' attempt.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye me-1"></i>Ver
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Primera">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Anterior">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;&laquo;</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Siguiente">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Última">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="no-attempts">
+            <div class="no-attempts-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <h3>No hay intentos disponibles</h3>
+            <p class="text-muted">No se encontraron intentos de test de desarrollo con los criterios actuales</p>
+            {% if request.GET %}
+                <a href="{% url 'courses:admin_essay_attempt_list' %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-times me-2"></i>Limpiar filtros
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

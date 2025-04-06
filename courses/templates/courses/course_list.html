@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cursos Disponibles - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .courses-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .course-card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 2rem;
+        height: 100%;
+    }
+    
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .course-image {
+        height: 180px;
+        object-fit: cover;
+    }
+    
+    .course-image-placeholder {
+        height: 180px;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+    
+    .course-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .course-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .course-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    
+    .course-stats span {
+        display: flex;
+        align-items: center;
+    }
+    
+    .course-stats i {
+        margin-right: 5px;
+    }
+    
+    .featured-badge {
+        position: absolute;
+        top: 0;
+        left: 1rem;
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+        z-index: 10;
+    }
+    
+    .no-courses {
+        text-align: center;
+        padding: 4rem 2rem;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    }
+    
+    .no-courses-icon {
+        font-size: 4rem;
+        color: var(--secondary);
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-bar {
+        background-color: var(--light);
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="courses-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">Explora Nuestros Cursos</h1>
+                <p class="lead mb-4">Encuentra el contenido perfecto para potenciar tu aprendizaje en diferentes disciplinas académicas.</p>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="{% static 'img/courses-illustration.svg' %}" alt="Cursos" class="img-fluid" style="max-height: 250px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Buscar por título o descripción..." value="{{ request.GET.search|default:'' }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">Todas las categorías</option>
+                    <option value="psicologia" {% if request.GET.category == 'psicologia' %}selected{% endif %}>Psicología</option>
+                    <option value="medicina" {% if request.GET.category == 'medicina' %}selected{% endif %}>Medicina</option>
+                    <option value="derecho" {% if request.GET.category == 'derecho' %}selected{% endif %}>Derecho</option>
+                    <option value="programacion" {% if request.GET.category == 'programacion' %}selected{% endif %}>Programación</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="sort" class="form-select">
+                    <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Más recientes</option>
+                    <option value="oldest" {% if request.GET.sort == 'oldest' %}selected{% endif %}>Más antiguos</option>
+                    <option value="name_asc" {% if request.GET.sort == 'name_asc' %}selected{% endif %}>Nombre (A-Z)</option>
+                    <option value="name_desc" {% if request.GET.sort == 'name_desc' %}selected{% endif %}>Nombre (Z-A)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i>Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    {% if courses %}
+        <div class="row">
+            {% for course in courses %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card course-card h-100">
+                        {% if forloop.counter == 1 and not request.GET %}
+                            <div class="featured-badge">Destacado</div>
+                        {% endif %}
+                        
+                        {% if course.image %}
+                            <img src="{{ course.image.url }}" class="card-img-top course-image" alt="{{ course.title }}">
+                        {% else %}
+                            <div class="course-image-placeholder">
+                                <i class="fas fa-book fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="course-title">{{ course.title }}</h5>
+                            <p class="card-text flex-grow-1">{{ course.description|truncatechars:150 }}</p>
+                            
+                            <div class="course-stats">
+                                <span><i class="fas fa-cubes"></i> {{ course.modules.count }} módulos</span>
+                                <span><i class="fas fa-clock"></i> {{ course.created|date:"d/m/Y" }}</span>
+                            </div>
+                            
+                            <a href="{% url 'courses:course_detail' course.slug %}" class="btn btn-primary mt-3">
+                                <i class="fas fa-info-circle me-2"></i>Ver detalles
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {% if is_paginated %}
+            <nav aria-label="Page navigation" class="my-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Primera">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Anterior">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;&laquo;</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Siguiente">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Última">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="no-courses">
+            <div class="no-courses-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <h3>No hay cursos disponibles</h3>
+            <p class="text-muted">No se encontraron cursos que coincidan con tu búsqueda.</p>
+            {% if request.GET %}
+                <a href="{% url 'courses:course_list' %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-times me-2"></i>Limpiar filtros
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Flashcards: {{ section.title }} - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .flashcards-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: white;
+    }
+    
+    .breadcrumb-item.active {
+        color: white;
+    }
+    
+    .breadcrumb-item+.breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .activity-container {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        padding: 2rem;
+    }
+    
+    .activity-description {
+        margin-bottom: 2rem;
+    }
+    
+    .flashcard-container {
+        perspective: 1000px;
+        margin: 0 auto;
+        max-width: 600px;
+        height: 350px;
+    }
+    
+    .flashcard {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.8s;
+    }
+    
+    .flashcard.flipped {
+        transform: rotateY(180deg);
+    }
+    
+    .flashcard-front, .flashcard-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .flashcard-front {
+        background-color: var(--primary);
+        color: white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .flashcard-back {
+        background-color: var(--light);
+        color: #333;
+        transform: rotateY(180deg);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .flashcard-text {
+        font-size: 1.5rem;
+        word-break: break-word;
+    }
+    
+    .flashcard-counter {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+    
+    .flashcard-nav {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+        gap: 1rem;
+    }
+    
+    .btn-flip {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+    }
+    
+    .btn-flip:hover {
+        background-color: #218a91;
+        border-color: #218a91;
+    }
+    
+    .flashcard-progress {
+        width: 100%;
+        margin-top: 2rem;
+    }
+    
+    .progress {
+        height: 8px;
+    }
+    
+    .flashcard-instructions {
+        background-color: #e9f7fb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--secondary);
+    }
+    
+    .flashcard-instructions h5 {
+        color: var(--secondary);
+        margin-bottom: 1rem;
+    }
+    
+    .controls-help {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .keyboard-key {
+        display: inline-block;
+        min-width: 2rem;
+        padding: 0.25rem 0.5rem;
+        font-family: monospace;
+        text-align: center;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        margin: 0 0.25rem;
+    }
+    
+    /* Estilo para cuando no hay flashcards */
+    .no-flashcards {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .no-flashcards-icon {
+        font-size: 4rem;
+        color: var(--secondary);
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Flashcards Header -->
+<div class="flashcards-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' section.module.course.slug %}">{{ section.module.course.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:module_detail' section.module.id %}">{{ section.module.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:section_detail' section.id %}">{{ section.title }}</a></li>
+                <li class="breadcrumb-item active">Flashcards</li>
+            </ol>
+        </nav>
+        <h1 class="display-5 fw-bold mb-0">Flashcards: {{ section.title }}</h1>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="activity-container">
+        <div class="activity-description">
+            <h2 class="mb-3">Aprende con flashcards</h2>
+            <p>Las flashcards son una herramienta efectiva para memorizar conceptos clave. Haz clic en la tarjeta o utiliza el botón "Voltear" para ver la respuesta. Navega entre las tarjetas utilizando los botones "Anterior" y "Siguiente".</p>
+        </div>
+        
+        {% if flashcards %}
+            <!-- Flashcards Component -->
+            <div id="flashcardApp">
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard">
+                        <div class="flashcard-front">
+                            <span class="flashcard-counter">
+                                <span id="currentCardIndex">1</span>/<span id="totalCards">{{ flashcards|length }}</span>
+                            </span>
+                            <div class="flashcard-text" id="questionText">{{ flashcards.0.question }}</div>
+                        </div>
+                        <div class="flashcard-back">
+                            <div class="flashcard-text" id="answerText">{{ flashcards.0.answer }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flashcard-nav">
+                    <button class="btn btn-primary" id="prevBtn" {% if flashcards|length == 1 %}disabled{% endif %}>
+                        <i class="fas fa-arrow-left me-2"></i>Anterior
+                    </button>
+                    <button class="btn btn-flip" id="flipBtn">
+                        <i class="fas fa-sync-alt me-2"></i>Voltear
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" {% if flashcards|length == 1 %}disabled{% endif %}>
+                        Siguiente<i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+                
+                <div class="flashcard-progress">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio 1 flashcards|length 100 %}%" id="progressBar" aria-valuenow="1" aria-valuemin="0" aria-valuemax="{{ flashcards|length }}"></div>
+                    </div>
+                </div>
+                
+                <div class="controls-help">
+                    <p>También puedes usar el teclado: <span class="keyboard-key">←</span> anterior, <span class="keyboard-key">→</span> siguiente, <span class="keyboard-key">Espacio</span> voltear</p>
+                </div>
+            </div>
+            
+            <div class="flashcard-instructions">
+                <h5><i class="fas fa-lightbulb me-2"></i>Consejos para un estudio efectivo</h5>
+                <ul>
+                    <li>Intenta responder mentalmente antes de voltear la tarjeta.</li>
+                    <li>Revisa regularmente las tarjetas para reforzar tu memoria a largo plazo.</li>
+                    <li>Concéntrate en las tarjetas que te resulten más difíciles.</li>
+                    <li>Usa técnicas de asociación para recordar conceptos complejos.</li>
+                </ul>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'courses:section_detail' section.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a la sección
+                </a>
+            </div>
+        {% else %}
+            <div class="no-flashcards">
+                <div class="no-flashcards-icon">
+                    <i class="fas fa-card-blank"></i>
+                </div>
+                <h3>No hay flashcards disponibles</h3>
+                <p class="text-muted">Esta sección aún no tiene flashcards para estudiar.</p>
+                <a href="{% url 'courses:section_detail' section.id %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a la sección
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if flashcards %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elementos DOM
+        const flashcard = document.getElementById('flashcard');
+        const questionText = document.getElementById('questionText');
+        const answerText = document.getElementById('answerText');
+        const currentCardIndex = document.getElementById('currentCardIndex');
+        const totalCards = document.getElementById('totalCards');
+        const progressBar = document.getElementById('progressBar');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const flipBtn = document.getElementById('flipBtn');
+        
+        // Datos de las flashcards
+        const flashcards = [
+            {% for card in flashcards %}
+                {
+                    question: "{{ card.question|escapejs }}",
+                    answer: "{{ card.answer|escapejs }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        // Estado actual
+        let currentIndex = 0;
+        let isFlipped = false;
+        
+        // Función para actualizar la tarjeta
+        function updateCard() {
+            // Actualizar texto
+            questionText.textContent = flashcards[currentIndex].question;
+            answerText.textContent = flashcards[currentIndex].answer;
+            
+            // Actualizar contadores
+            currentCardIndex.textContent = currentIndex + 1;
+            
+            // Actualizar barra de progreso
+            const progressPercentage = ((currentIndex + 1) / flashcards.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            progressBar.setAttribute('aria-valuenow', currentIndex + 1);
+            
+            // Resetear el estado de la tarjeta
+            flashcard.classList.remove('flipped');
+            isFlipped = false;
+            
+            // Actualizar estado de botones
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === flashcards.length - 1;
+        }
+        
+        // Función para voltear la tarjeta
+        function flipCard() {
+            flashcard.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+        
+        // Función para ir a la tarjeta anterior
+        function previousCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+            }
+        }
+        
+        // Función para ir a la siguiente tarjeta
+        function nextCard() {
+            if (currentIndex < flashcards.length - 1) {
+                currentIndex++;
+                updateCard();
+            }
+        }
+        
+        // Event listeners
+        flashcard.addEventListener('click', flipCard);
+        flipBtn.addEventListener('click', flipCard);
+        prevBtn.addEventListener('click', previousCard);
+        nextBtn.addEventListener('click', nextCard);
+        
+        // Controles de teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'ArrowLeft') {
+                previousCard();
+            } else if (e.code === 'ArrowRight') {
+                nextCard();
+            } else if (e.code === 'Space') {
+                flipCard();
+                e.preventDefault(); // Prevenir scroll
+            }
+        });
+        
+        // Inicializar
+        updateCard();
+    });
+</script>
+{% endif %}
+{% endblock %}

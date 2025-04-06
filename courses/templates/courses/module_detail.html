@@ -1,0 +1,409 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ module.title }} - {{ module.course.title }} - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .module-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 2.5rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: white;
+    }
+    
+    .breadcrumb-item.active {
+        color: white;
+    }
+    
+    .breadcrumb-item+.breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        background-color: var(--secondary);
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+    
+    .section-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #eee;
+        text-decoration: none;
+        color: #333;
+    }
+    
+    .section-item:last-child {
+        border-bottom: none;
+    }
+    
+    .section-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .section-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        margin-right: 1rem;
+        color: var(--primary);
+    }
+    
+    .section-info {
+        flex-grow: 1;
+    }
+    
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .section-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .module-sidebar {
+        position: sticky;
+        top: 2rem;
+    }
+    
+    .sidebar-heading {
+        font-size: 1.1rem;
+        padding: 1rem 1.5rem;
+        background-color: var(--primary);
+        color: white;
+        margin-bottom: 0;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    
+    .sidebar-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        background-color: white;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .sidebar-list-item {
+        padding: 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .sidebar-list-item:last-child {
+        border-bottom: none;
+    }
+    
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .sidebar-link:hover {
+        background-color: #f8f9fa;
+        color: var(--primary);
+    }
+    
+    .sidebar-link.active {
+        background-color: #e9ecef;
+        color: var(--primary);
+        font-weight: 600;
+    }
+    
+    .sidebar-icon {
+        margin-right: 0.75rem;
+        color: var(--secondary);
+        width: 20px;
+        text-align: center;
+    }
+    
+    .progress-container {
+        padding: 1.5rem;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+    
+    .progress {
+        height: 8px;
+    }
+    
+    .completed-badge {
+        background-color: #28a745;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+    
+    .locked-badge {
+        background-color: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+    
+    .test-card {
+        background-color: #f0f9ff;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .test-icon {
+        background-color: #e1f0ff;
+        color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Module Header -->
+<div class="module-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' module.course.slug %}">{{ module.course.title }}</a></li>
+                <li class="breadcrumb-item active">{{ module.title }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-5 fw-bold mb-3">{{ module.title }}</h1>
+        <p class="lead mb-0">{{ module.description }}</p>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="row">
+        <!-- Main Content Column -->
+        <div class="col-lg-8">
+            <!-- Progress Section -->
+            <div class="progress-container">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">Tu progreso en este módulo</h5>
+                    <span class="fw-bold">{{ module_progress|default:"0" }}%</span>
+                </div>
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ module_progress|default:'0' }}%" aria-valuenow="{{ module_progress|default:'0' }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>{{ completed_sections_count }} de {{ sections|length }} secciones completadas</span>
+                    {% if completed_sections_count == sections|length %}
+                        <span class="text-success"><i class="fas fa-check-circle me-1"></i>¡Módulo completado!</span>
+                    {% else %}
+                        <span>{{ sections|length|sub:completed_sections_count }} secciones restantes</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Sections List -->
+            <h2 class="mb-3">Contenido del módulo</h2>
+            
+            {% for section in sections %}
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ section.title }}</h5>
+                        {% if section in completed_sections %}
+                            <span class="completed-badge"><i class="fas fa-check me-1"></i>Completada</span>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'courses:section_detail' section.id %}" class="section-item">
+                        <div class="section-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="section-info">
+                            <div class="section-title">Contenido principal</div>
+                            <div class="section-meta">
+                                {% if section.content|wordcount > 0 %}
+                                    <i class="fas fa-align-left me-1"></i>{{ section.content|wordcount }} palabras
+                                {% else %}
+                                    <i class="fas fa-info-circle me-1"></i>Sin contenido principal
+                                {% endif %}
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                    
+                    {% if section.flashcards.exists %}
+                        <a href="{% url 'courses:flashcard_list' section.id %}" class="section-item">
+                            <div class="section-icon" style="background-color: #e8f4f8;">
+                                <i class="fas fa-card-blank" style="color: #17a2b8;"></i>
+                            </div>
+                            <div class="section-info">
+                                <div class="section-title">Flashcards</div>
+                                <div class="section-meta">
+                                    <i class="fas fa-cards me-1"></i>{{ section.flashcards.count }} tarjetas de memoria
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    {% endif %}
+                    
+                    {% if section.concept_connections.exists %}
+                        <a href="{% url 'courses:concept_connection_detail' section.concept_connections.first.id %}" class="section-item">
+                            <div class="section-icon" style="background-color: #f3f9e8;">
+                                <i class="fas fa-link" style="color: #28a745;"></i>
+                            </div>
+                            <div class="section-info">
+                                <div class="section-title">Conexión de conceptos</div>
+                                <div class="section-meta">
+                                    <i class="fas fa-project-diagram me-1"></i>Ejercicio de relación
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    {% endif %}
+                    
+                    {% if section.multiple_choice_tests.exists %}
+                        <a href="{% url 'courses:multiple_choice_test' section.multiple_choice_tests.first.id %}" class="section-item">
+                            <div class="section-icon" style="background-color: #fef8e8;">
+                                <i class="fas fa-question-circle" style="color: #ffc107;"></i>
+                            </div>
+                            <div class="section-info">
+                                <div class="section-title">Test de alternativas</div>
+                                <div class="section-meta">
+                                    <i class="fas fa-check-square me-1"></i>{{ section.multiple_choice_tests.first.questions.count }} preguntas
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Este módulo aún no tiene secciones disponibles.
+                </div>
+            {% endfor %}
+            
+            <!-- Final Test Section -->
+            {% if module.essay_test %}
+                <div class="card test-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ module.essay_test.title }}</h5>
+                        {% if user_test_attempt %}
+                            <span class="completed-badge"><i class="fas fa-check me-1"></i>Completado</span>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'courses:essay_test_start' module.essay_test.id %}" class="section-item">
+                        <div class="section-icon test-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="section-info">
+                            <div class="section-title">Test final de desarrollo</div>
+                            <div class="section-meta">
+                                <i class="fas fa-pen me-1"></i>{{ module.essay_test.questions.count }} preguntas de desarrollo
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                </div>
+            {% endif %}
+            
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-between mt-4 mb-5">
+                {% if prev_module %}
+                    <a href="{% url 'courses:module_detail' prev_module.id %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Módulo anterior
+                    </a>
+                {% else %}
+                    <a href="{% url 'courses:course_detail' module.course.slug %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al curso
+                    </a>
+                {% endif %}
+                
+                {% if next_module %}
+                    <a href="{% url 'courses:module_detail' next_module.id %}" class="btn btn-primary">
+                        Siguiente módulo<i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'courses:course_detail' module.course.slug %}" class="btn btn-success">
+                        <i class="fas fa-check-circle me-2"></i>Finalizar curso
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar Column -->
+        <div class="col-lg-4">
+            <div class="module-sidebar">
+                <h5 class="sidebar-heading">Navegación del curso</h5>
+                <ul class="sidebar-list shadow-sm">
+                    {% for mod in course_modules %}
+                        <li class="sidebar-list-item">
+                            <a href="{% url 'courses:module_detail' mod.id %}" class="sidebar-link {% if mod.id == module.id %}active{% endif %}">
+                                <i class="fas fa-cube sidebar-icon"></i>
+                                <span>{{ mod.title }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recursos adicionales</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <a href="#" class="text-decoration-none">
+                                    <i class="fas fa-download me-2 text-primary"></i>
+                                    Material complementario
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="#" class="text-decoration-none">
+                                    <i class="fas fa-book me-2 text-primary"></i>
+                                    Bibliografía recomendada
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="#" class="text-decoration-none">
+                                    <i class="fas fa-question-circle me-2 text-primary"></i>
+                                    Preguntas frecuentes
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

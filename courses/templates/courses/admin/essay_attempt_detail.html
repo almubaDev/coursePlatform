@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Intento - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .attempt-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .badge-submitted {
+        background-color: #6c757d;
+    }
+    
+    .badge-processing {
+        background-color: #0dcaf0;
+    }
+    
+    .badge-analyzed {
+        background-color: #198754;
+    }
+    
+    .badge-failed {
+        background-color: #dc3545;
+    }
+    
+    .user-info-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+    
+    .user-info-header {
+        background-color: var(--secondary);
+        color: white;
+        padding: 1rem;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    
+    .user-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid white;
+    }
+    
+    .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #6c757d;
+        border: 3px solid white;
+    }
+    
+    .user-details {
+        padding: 1.5rem;
+    }
+    
+    .badge-score {
+        font-size: 1.2rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+    }
+    
+    .question-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .question-header {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .question-type-badge {
+        font-size: 0.8rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        background-color: #e9ecef;
+        border: 1px solid #dee2e6;
+        margin-left: 10px;
+    }
+    
+    .question-content {
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-left: 4px solid var(--primary);
+        margin: 1rem;
+        border-radius: 4px;
+    }
+    
+    .answer-box {
+        padding: 1.5rem;
+        background-color: white;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        margin: 1rem;
+    }
+    
+    .feedback-box {
+        padding: 1.5rem;
+        background-color: #e9f7fb;
+        border-left: 4px solid var(--secondary);
+        border-radius: 8px;
+        margin: 1rem;
+    }
+    
+    .overall-feedback {
+        padding: 2rem;
+        background-color: #f0f9ff;
+        border-radius: 8px;
+        margin-bottom: -0.5rem;
+        border-left: 4px solid #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="attempt-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2">Detalles del Intento</h1>
+                <p class="lead mb-0">Revisión de respuestas y evaluación de estudiante</p>
+            </div>
+            <a href="{% url 'courses:admin_essay_attempt_list' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver a intentos
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Información del estudiante -->
+            <div class="user-info-card">
+                <div class="user-info-header">
+                    <h5 class="mb-0">Información del estudiante</h5>
+                </div>
+                <div class="user-details text-center">
+                    {% if attempt.user.profile_picture %}
+                        <img src="{{ attempt.user.profile_picture.url }}" alt="{{ attempt.user.get_full_name }}" class="user-avatar mb-3">
+                    {% else %}
+                        <div class="avatar-placeholder mb-3 mx-auto">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    <h4>{{ attempt.user.get_full_name }}</h4>
+                    <p class="text-muted mb-3">{{ attempt.user.email }}</p>
+                    
+                    <hr>
+                    
+                    <div class="row text-start">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Fecha de registro:</strong></p>
+                            <p class="text-muted">{{ attempt.user.date_joined|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>ID de usuario:</strong></p>
+                            <p class="text-muted">{{ attempt.user.id }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información del intento -->
+            <div class="user-info-card">
+                <div class="user-info-header">
+                    <h5 class="mb-0">Detalles del intento</h5>
+                </div>
+                <div class="user-details">
+                    <div class="mb-3 text-center">
+                        <span class="badge
+                            {% if attempt.status == 'submitted' %}badge-submitted
+                            {% elif attempt.status == 'processing' %}badge-processing
+                            {% elif attempt.status == 'analyzed' %}badge-analyzed
+                            {% elif attempt.status == 'failed' %}badge-failed{% endif %}
+                            p-2">
+                            {% if attempt.status == 'submitted' %}Enviado
+                            {% elif attempt.status == 'processing' %}Procesando
+                            {% elif attempt.status == 'analyzed' %}Analizado
+                            {% elif attempt.status == 'failed' %}Fallido{% endif %}
+                        </span>
+                        
+                        {% if attempt.score is not None %}
+                            <span class="badge bg-primary badge-score ms-2">{{ attempt.score }}/100</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Fecha de envío:</strong></p>
+                            <p class="text-muted">{{ attempt.date_submitted|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Fecha de análisis:</strong></p>
+                            <p class="text-muted">
+                                {% if attempt.date_analyzed %}
+                                    {{ attempt.date_analyzed|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Pendiente
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="mb-2">Información del test</h6>
+                    <p class="mb-1"><strong>Título:</strong> {{ attempt.test.title }}</p>
+                    <p class="mb-1"><strong>Módulo:</strong> {{ attempt.test.module.title }}</p>
+                    <p class="mb-0"><strong>Curso:</strong> {{ attempt.test.module.course.title }}</p>
+                </div>
+            </div>
+            
+            <!-- Acciones administrativas -->
+            {% if attempt.status != 'analyzed' %}
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">Acciones administrativas</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if attempt.status == 'submitted' or attempt.status == 'processing' %}
+                            <form method="post" action="{% url 'courses:admin_process_attempt' attempt.id %}" class="mb-3">
+                                {% csrf_token %}
+                                <div class="d-grid">
+                                    <button type="submit" name="action" value="process" class="btn btn-primary">
+                                        <i class="fas fa-robot me-2"></i>Procesar manualmente
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Inicia el análisis de IA para este intento.</small>
+                            </form>
+                        {% endif %}
+                        
+                        {% if attempt.status == 'failed' %}
+                            <form method="post" action="{% url 'courses:admin_process_attempt' attempt.id %}" class="mb-3">
+                                {% csrf_token %}
+                                <div class="d-grid">
+                                    <button type="submit" name="action" value="retry" class="btn btn-warning">
+                                        <i class="fas fa-redo-alt me-2"></i>Reintentar análisis
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Intenta nuevamente el análisis de IA.</small>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-8">
+            <!-- Retroalimentación general -->
+            {% if attempt.status == 'analyzed' and attempt.ai_feedback %}
+                <div class="overall-feedback mb-4">
+                    <h4 class="mb-3">Retroalimentación General</h4>
+                    <div>{{ attempt.ai_feedback|linebreaksbr }}</div>
+                </div>
+            {% endif %}
+            
+            <!-- Preguntas y respuestas -->
+            <h4 class="mb-3">Preguntas y Respuestas</h4>
+            
+            {% for answer in answers %}
+                <div class="question-card">
+                    <div class="question-header">
+                        <h5 class="mb-0">
+                            Pregunta #{{ answer.question.order }}
+                            <span class="question-type-badge">
+                                {% if answer.question.question_type == 'case_study' %}
+                                    <i class="fas fa-bookmark me-1"></i>Estudio de caso
+                                {% else %}
+                                    <i class="fas fa-question-circle me-1"></i>Regular
+                                {% endif %}
+                            </span>
+                        </h5>
+                    </div>
+                    
+                    <div class="question-content">
+                        {{ answer.question.question_text|linebreaksbr }}
+                    </div>
+                    
+                    <div class="answer-section">
+                        <h6 class="px-3 pt-3 mb-0">Respuesta del estudiante:</h6>
+                        <div class="answer-box">
+                            {{ answer.answer_text|linebreaksbr }}
+                        </div>
+                        
+                        {% if answer.ai_feedback %}
+                            <h6 class="px-3 pt-2 mb-0">Retroalimentación de IA:</h6>
+                            <div class="feedback-box">
+                                {{ answer.ai_feedback|linebreaksbr }}
+                            </div>
+                        {% elif attempt.status == 'analyzed' %}
+                            <div class="feedback-box">
+                                <em>No hay retroalimentación específica para esta respuesta.</em>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No se encontraron respuestas para este intento.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ section.title }} - {{ section.module.title }} - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.5.1/styles/github.min.css">
+<style>
+    .section-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: white;
+    }
+    
+    .breadcrumb-item.active {
+        color: white;
+    }
+    
+    .breadcrumb-item+.breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .content-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .content-container a {
+        color: var(--primary);
+    }
+    
+    .content-container a:hover {
+        color: var(--secondary);
+    }
+    
+    .content-container h1, 
+    .content-container h2, 
+    .content-container h3, 
+    .content-container h4, 
+    .content-container h5, 
+    .content-container h6 {
+        color: var(--primary);
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .content-container h1 {
+        font-size: 2rem;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 0.5rem;
+    }
+    
+    .content-container h2 {
+        font-size: 1.75rem;
+    }
+    
+    .content-container h3 {
+        font-size: 1.5rem;
+    }
+    
+    .content-container p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .content-container ul, 
+    .content-container ol {
+        padding-left: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .content-container li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .content-container blockquote {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--secondary);
+        background-color: #f8f9fa;
+    }
+    
+    .content-container blockquote p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .content-container code {
+        background-color: #f5f5f5;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.9rem;
+    }
+    
+    .content-container pre {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+    }
+    
+    .content-container pre code {
+        padding: 0;
+        background-color: transparent;
+    }
+    
+    .content-container img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 5px;
+        margin: 1rem 0;
+    }
+    
+    .content-container table {
+        width: 100%;
+        margin-bottom: 1rem;
+        border-collapse: collapse;
+    }
+    
+    .content-container table th,
+    .content-container table td {
+        padding: 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .content-container table th {
+        background-color: #f8f9fa;
+    }
+    
+    .content-container hr {
+        margin: 2rem 0;
+        border-top: 1px solid #eee;
+    }
+    
+    .activities-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .activity-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .activity-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .activity-card:last-child {
+        margin-bottom: 0;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+    }
+    
+    .flashcard-icon {
+        background-color: #e8f4f8;
+        color: #17a2b8;
+    }
+    
+    .connection-icon {
+        background-color: #f3f9e8;
+        color: #28a745;
+    }
+    
+    .test-icon {
+        background-color: #fef8e8;
+        color: #ffc107;
+    }
+    
+    .navigation-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .sidebar {
+        position: sticky;
+        top: 2rem;
+    }
+    
+    .toc-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .toc-list {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+    
+    .toc-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .toc-item a {
+        text-decoration: none;
+        color: #333;
+        display: block;
+        padding: 0.25rem 0;
+    }
+    
+    .toc-item a:hover {
+        color: var(--primary);
+    }
+    
+    .toc-item-h2 {
+        padding-left: 1rem;
+    }
+    
+    .toc-item-h3 {
+        padding-left: 2rem;
+    }
+    
+    .toc-item-h4 {
+        padding-left: 3rem;
+    }
+    
+    .module-sections {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+    
+    .module-section-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .module-section-item:last-child {
+        border-bottom: none;
+    }
+    
+    .module-section-link {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: #333;
+    }
+    
+    .module-section-link:hover {
+        color: var(--primary);
+    }
+    
+    .module-section-link.active {
+        color: var(--primary);
+        font-weight: 600;
+    }
+    
+    .section-icon {
+        width: 24px;
+        margin-right: 0.5rem;
+        color: var(--secondary);
+    }
+    
+    .completion-container {
+        background-color: #e9f7fb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border-left: 4px solid var(--secondary);
+    }
+    
+    .btn-complete {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+    }
+    
+    .btn-complete:hover {
+        background-color: #218a91;
+        border-color: #218a91;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Section Header -->
+<div class="section-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' section.module.course.slug %}">{{ section.module.course.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:module_detail' section.module.id %}">{{ section.module.title }}</a></li>
+                <li class="breadcrumb-item active">{{ section.title }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-5 fw-bold mb-0">{{ section.title }}</h1>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="row">
+        <!-- Main Content Column -->
+        <div class="col-lg-8">
+            <!-- Main Content -->
+            <div class="content-container markdown-content">
+                {{ rendered_content|safe }}
+            </div>
+            
+            {% if section.flashcards.exists or section.concept_connections.exists or section.multiple_choice_tests.exists %}
+                <!-- Activities Section -->
+                <div class="activities-container">
+                    <h4 class="mb-3">Actividades interactivas</h4>
+                    
+                    {% if section.flashcards.exists %}
+                        <div class="activity-card">
+                            <div class="d-flex">
+                                <div class="activity-icon flashcard-icon">
+                                    <i class="fas fa-card-blank"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">Flashcards</h5>
+                                    <p class="mb-2">Repasa los conceptos clave con tarjetas de memoria.</p>
+                                    <a href="{% url 'courses:flashcard_list' section.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-play me-1"></i>Iniciar actividad
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if section.concept_connections.exists %}
+                        {% for connection in section.concept_connections.all %}
+                            <div class="activity-card">
+                                <div class="d-flex">
+                                    <div class="activity-icon connection-icon">
+                                        <i class="fas fa-link"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1">{{ connection.title }}</h5>
+                                        <p class="mb-2">Ejercicio para conectar términos con sus definiciones.</p>
+                                        <a href="{% url 'courses:concept_connection_detail' connection.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-play me-1"></i>Iniciar actividad
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if section.multiple_choice_tests.exists %}
+                        {% for test in section.multiple_choice_tests.all %}
+                            <div class="activity-card">
+                                <div class="d-flex">
+                                    <div class="activity-icon test-icon">
+                                        <i class="fas fa-question-circle"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1">{{ test.title }}</h5>
+                                        <p class="mb-2">Test de alternativas múltiples para evaluar tu comprensión.</p>
+                                        <a href="{% url 'courses:multiple_choice_test' test.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-play me-1"></i>Iniciar actividad
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            <!-- Mark as Completed Section -->
+            <div class="completion-container">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">¿Has terminado esta sección?</h5>
+                        <p class="mb-0">Marca como completada para seguir tu progreso.</p>
+                    </div>
+                    
+                    {% if section in completed_sections %}
+                        <form method="post" action="{% url 'courses:toggle_section_completion' section.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Desmarcar completada
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{% url 'courses:toggle_section_completion' section.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-complete">
+                                <i class="fas fa-check me-2"></i>Marcar como completada
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div class="navigation-container mt-4">
+                <div class="d-flex justify-content-between">
+                    {% if prev_section %}
+                        <a href="{% url 'courses:section_detail' prev_section.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Sección anterior
+                        </a>
+                    {% else %}
+                        <a href="{% url 'courses:module_detail' section.module.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver al módulo
+                        </a>
+                    {% endif %}
+                    
+                    {% if next_section %}
+                        <a href="{% url 'courses:section_detail' next_section.id %}" class="btn btn-primary">
+                            Siguiente sección<i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    {% else %}
+                        {% if section.module.essay_test %}
+                            <a href="{% url 'courses:essay_test_start' section.module.essay_test.id %}" class="btn btn-success">
+                                <i class="fas fa-file-alt me-2"></i>Ir al test final
+                            </a>
+                        {% else %}
+                            <a href="{% url 'courses:module_detail' section.module.id %}" class="btn btn-success">
+                                <i class="fas fa-check-circle me-2"></i>Finalizar módulo
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar Column -->
+        <div class="col-lg-4">
+            <div class="sidebar">
+                <!-- Table of Contents -->
+                {% if toc_items %}
+                    <div class="toc-container">
+                        <h5 class="mb-3">Contenido de esta sección</h5>
+                        <ul class="toc-list">
+                            {% for item in toc_items %}
+                                <li class="toc-item toc-item-{{ item.tag }}">
+                                    <a href="#{{ item.id }}">{{ item.text }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <!-- Module Sections -->
+                <div class="toc-container">
+                    <h5 class="mb-3">Secciones del módulo</h5>
+                    <ul class="module-sections">
+                        {% for sec in module_sections %}
+                            <li class="module-section-item">
+                                <a href="{% url 'courses:section_detail' sec.id %}" class="module-section-link {% if sec.id == section.id %}active{% endif %}">
+                                    <i class="fas fa-file-alt section-icon"></i>
+                                    {{ sec.title }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                        
+                        {% if section.module.essay_test %}
+                            <li class="module-section-item">
+                                <a href="{% url 'courses:essay_test_start' section.module.essay_test.id %}" class="module-section-link">
+                                    <i class="fas fa-file-alt section-icon" style="color: #0d6efd;"></i>
+                                    {{ section.module.essay_test.title }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Related Resources -->
+                <div class="toc-container">
+                    <h5 class="mb-3">Recursos relacionados</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <a href="#" class="text-decoration-none">
+                                <i class="fas fa-file-pdf me-2 text-danger"></i>
+                                Material complementario (PDF)
+                            </a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="#" class="text-decoration-none">
+                                <i class="fas fa-external-link-alt me-2 text-primary"></i>
+                                Enlaces adicionales
+                            </a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="#" class="text-decoration-none">
+                                <i class="fas fa-book me-2 text-success"></i>
+                                Referencias bibliográficas
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.5.1/highlight.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar highlight.js para resaltar bloques de código
+        document.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightBlock(block);
+        });
+        
+        // Añadir eventos de scrollspy para la tabla de contenidos
+        const headings = document.querySelectorAll('.markdown-content h2, .markdown-content h3, .markdown-content h4');
+        const tocLinks = document.querySelectorAll('.toc-item a');
+        
+        function highlightTocItem() {
+            let scrollPosition = window.scrollY;
+            
+            // Añadir un pequeño offset para mejorar la detección
+            scrollPosition += 100;
+            
+            // Encontrar el encabezado actualmente visible
+            let currentHeading = null;
+            for (let i = 0; i < headings.length; i++) {
+                if (headings[i].offsetTop <= scrollPosition) {
+                    currentHeading = headings[i];
+                } else {
+                    break;
+                }
+            }
+            
+            // Resaltar el elemento de TOC correspondiente
+            if (currentHeading) {
+                const currentId = currentHeading.id;
+                
+                // Quitar resaltado de todos los elementos
+                tocLinks.forEach(link => {
+                    link.style.fontWeight = 'normal';
+                    link.style.color = '#333';
+                });
+                
+                // Añadir resaltado al elemento actual
+                const currentTocItem = document.querySelector(`.toc-item a[href="#${currentId}"]`);
+                if (currentTocItem) {
+                    currentTocItem.style.fontWeight = 'bold';
+                    currentTocItem.style.color = 'var(--primary)';
+                }
+            }
+        }
+        
+        // Inicializar al cargar la página
+        highlightTocItem();
+        
+        // Actualizar al hacer scroll
+        window.addEventListener('scroll', highlightTocItem);
+    });
+</script>
+{% endblock %}

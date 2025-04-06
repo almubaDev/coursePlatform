@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Cupón - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .coupon-form-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .coupon-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .form-help-text {
+        background-color: var(--light);
+        border-left: 4px solid var(--secondary);
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .coupon-icon {
+        font-size: 2.5rem;
+        color: var(--secondary);
+        margin-bottom: 1.5rem;
+    }
+    
+    .select2-container--default .select2-selection--single {
+        height: calc(1.5em + 0.75rem + 2px);
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 1.5;
+        padding-left: 0;
+        color: #495057;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + 0.75rem + 2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="coupon-form-container">
+        <div class="coupon-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2">Crear Cupón</h1>
+                    <p class="lead mb-0">Otorga un intento adicional para un test de desarrollo</p>
+                </div>
+                <a href="{% url 'courses:admin_coupon_list' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a cupones
+                </a>
+            </div>
+        </div>
+        
+        <div class="form-help-text mb-4">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Los cupones permiten a los estudiantes realizar un intento adicional en un test de desarrollo específico. Asigna un cupón a un usuario y un test para permitirle volver a intentarlo.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="coupon-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h4>Información del cupón</h4>
+                </div>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.user.id_for_label }}" class="form-label">{{ form.user.label }}</label>
+                        {{ form.user }}
+                        {% if form.user.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.user.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Selecciona el estudiante que recibirá este cupón.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.test.id_for_label }}" class="form-label">{{ form.test.label }}</label>
+                        {{ form.test }}
+                        {% if form.test.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.test.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Selecciona el test para el que deseas otorgar un intento adicional.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_used }}
+                            <label for="{{ form.is_used.id_for_label }}" class="form-check-label">{{ form.is_used.label }}</label>
+                        </div>
+                        {% if form.is_used.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.is_used.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Marca esta opción si el cupón ya ha sido utilizado. Normalmente se deja desmarcado para cupones nuevos.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Crear Cupón
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#{{ form.user.id_for_label }}').select2({
+            placeholder: 'Selecciona un estudiante',
+            theme: 'classic',
+            width: '100%'
+        });
+        
+        $('#{{ form.test.id_for_label }}').select2({
+            placeholder: 'Selecciona un test',
+            theme: 'classic',
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %}

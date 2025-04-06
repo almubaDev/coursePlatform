@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Test de Desarrollo{% else %}Crear Test de Desarrollo{% endif %} - Estudia Rápido
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .test-form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .test-help-text {
+        background-color: var(--light);
+        border-left: 4px solid var(--secondary);
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .module-badge {
+        background-color: var(--secondary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .questions-list {
+        margin-top: 30px;
+    }
+    
+    .question-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    
+    .question-card-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .question-card-body {
+        padding: 15px;
+    }
+    
+    .question-text {
+        font-weight: 500;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .question-actions {
+        margin-top: 15px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .no-questions-message {
+        text-align: center;
+        padding: 30px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px dashed #ddd;
+    }
+    
+    .question-type-badge {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background-color: rgba(255,255,255,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="test-form-container">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' course.slug %}">{{ course.title }}</a></li>
+                <li class="breadcrumb-item active">
+                    {% if form.instance.pk %}Editar Test de Desarrollo{% else %}Crear Test de Desarrollo{% endif %}
+                </li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 style="color: var(--primary);">
+                {% if form.instance.pk %}
+                    Editar Test de Desarrollo
+                {% else %}
+                    Crear Nuevo Test de Desarrollo
+                {% endif %}
+            </h1>
+            <a href="{% url 'courses:admin_module_list' course.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver a módulos
+            </a>
+        </div>
+        
+        <div class="badges-container">
+            <span class="course-badge">
+                <i class="fas fa-book me-1"></i>{{ course.title }}
+            </span>
+            <br>
+            <span class="module-badge">
+                <i class="fas fa-cube me-1"></i>{{ module.title }}
+            </span>
+        </div>
+        
+        <div class="test-help-text mb-4">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2" style="color: var(--secondary);"></i>
+                Los tests de desarrollo permiten evaluar el conocimiento profundo de los estudiantes mediante preguntas abiertas. Las respuestas serán evaluadas con análisis de IA para ofrecer retroalimentación detallada.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Información del test</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate id="testForm">
+                    {% csrf_token %}
+                    {{ form.module }}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{{ form.description.help_text }}</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar test
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if form.instance.pk %}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 style="color: var(--primary);">Preguntas</h2>
+                <a href="{% url 'courses:admin_essay_question_create' form.instance.pk %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Añadir pregunta
+                </a>
+            </div>
+            
+            <div class="questions-list">
+                {% if questions %}
+                    {% for question in questions %}
+                        <div class="question-card">
+                            <div class="question-card-header">
+                                <h5 class="mb-0">Pregunta #{{ question.order }}</h5>
+                                <span class="question-type-badge">
+                                    {{ question.get_question_type_display }}
+                                </span>
+                            </div>
+                            <div class="question-card-body">
+                                <div class="question-text">
+                                    {{ question.question_text }}
+                                </div>
+                                
+                                <div class="question-actions">
+                                    <a href="{% url 'courses:admin_essay_question_update' question.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit me-1"></i>Editar pregunta
+                                    </a>
+                                    <a href="{% url 'courses:admin_essay_question_delete' question.id %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-questions-message">
+                        <div class="mb-3">
+                            <i class="fas fa-file-alt fa-3x text-secondary"></i>
+                        </div>
+                        <h4>No hay preguntas todavía</h4>
+                        <p class="text-muted mb-3">Este test no tiene preguntas. Añade algunas preguntas para completar el test.</p>
+                        <a href="{% url 'courses:admin_essay_question_create' form.instance.pk %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Añadir primera pregunta
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'courses:admin_module_list' course.slug %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a módulos
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,409 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ course.title }} - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .course-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .course-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .course-image-placeholder {
+        width: 100%;
+        height: 250px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .course-details {
+        background-color: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .course-stats {
+        display: flex;
+        gap: 2rem;
+        margin: 1.5rem 0;
+    }
+    
+    .stat-item {
+        display: flex;
+        align-items: center;
+        color: #6c757d;
+    }
+    
+    .stat-item i {
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+        color: var(--secondary);
+    }
+    
+    .stat-item .stat-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-right: 5px;
+    }
+    
+    .module-card {
+        background-color: white;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 1.5rem;
+        border: 1px solid #eee;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    
+    .module-header {
+        background-color: var(--secondary);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .module-body {
+        padding: 1.5rem;
+    }
+    
+    .section-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .section-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-item:last-child {
+        border-bottom: none;
+    }
+    
+    .section-icon {
+        width: 30px;
+        height: 30px;
+        background-color: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: var(--primary);
+    }
+    
+    .section-link {
+        color: #333;
+        text-decoration: none;
+        flex-grow: 1;
+    }
+    
+    .section-link:hover {
+        color: var(--primary);
+    }
+    
+    .progress-container {
+        margin-top: 0.5rem;
+    }
+    
+    .progress {
+        height: 5px;
+        margin-top: 0.25rem;
+    }
+    
+    .course-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-start {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .btn-continue {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+    }
+    
+    .locked-badge {
+        background-color: #dc3545;
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        white-space: nowrap;
+    }
+    
+    .completed-badge {
+        background-color: #28a745;
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        white-space: nowrap;
+    }
+    
+    .test-badge {
+        background-color: #17a2b8;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Course Header -->
+<div class="course-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}" class="text-white">Cursos</a></li>
+                        <li class="breadcrumb-item active text-white-50" aria-current="page">{{ course.title }}</li>
+                    </ol>
+                </nav>
+                <h1 class="display-5 fw-bold mb-3">{{ course.title }}</h1>
+                <p class="lead mb-0">{{ course.description|truncatechars:150 }}</p>
+            </div>
+            <div class="col-lg-4 mt-4 mt-lg-0 text-center">
+                {% if course.image %}
+                    <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
+                {% else %}
+                    <div class="course-image-placeholder">
+                        <i class="fas fa-book fa-4x"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Course Content -->
+<div class="container">
+    <!-- Course Details Section -->
+    <div class="course-details">
+        <h2>Acerca de este curso</h2>
+        <p>{{ course.description }}</p>
+        
+        <div class="course-stats">
+            <div class="stat-item">
+                <i class="fas fa-cubes"></i>
+                <div>
+                    <span class="stat-value">{{ modules|length }}</span> módulos
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-layer-group"></i>
+                <div>
+                    <span class="stat-value">{{ section_count }}</span> secciones
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-tasks"></i>
+                <div>
+                    <span class="stat-value">{{ activity_count }}</span> actividades
+                </div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-calendar-alt"></i>
+                <div>
+                    Actualizado <span class="stat-value">{{ course.updated|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Tu progreso</span>
+                <span>{{ progress|default:"0" }}%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress|default:'0' }}%" aria-valuenow="{{ progress|default:'0' }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+        
+        <div class="course-actions">
+            {% if user_progress %}
+                <a href="{% url 'courses:module_detail' last_module.id %}" class="btn btn-lg btn-continue">
+                    <i class="fas fa-play-circle me-2"></i>Continuar aprendiendo
+                </a>
+            {% else %}
+                <a href="{% url 'courses:module_detail' first_module.id %}" class="btn btn-lg btn-start">
+                    <i class="fas fa-play-circle me-2"></i>Comenzar curso
+                </a>
+            {% endif %}
+            
+            <button type="button" class="btn btn-lg btn-outline-primary" data-bs-toggle="modal" data-bs-target="#courseContentModal">
+                <i class="fas fa-list me-2"></i>Ver contenido completo
+            </button>
+        </div>
+    </div>
+    
+    <!-- Module List Section -->
+    <h2 class="mb-4">Módulos del curso</h2>
+    
+    {% for module in modules %}
+        <div class="module-card">
+            <div class="module-header">
+                <h4 class="mb-0">{{ module.title }}</h4>
+                <span>{{ module.sections.count }} secciones</span>
+            </div>
+            <div class="module-body">
+                {% if module.description %}
+                    <p>{{ module.description }}</p>
+                {% endif %}
+                
+                {% if forloop.counter == 1 or user_progress >= forloop.counter0 %}
+                    <!-- Module is available -->
+                    <ul class="section-list">
+                        {% for section in module.sections.all|slice:":3" %}
+                            <li class="section-item">
+                                <div class="section-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <a href="{% url 'courses:section_detail' section.id %}" class="section-link">
+                                    {{ section.title }}
+                                </a>
+                                {% if section in completed_sections %}
+                                    <span class="badge completed-badge">Completada</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        
+                        {% if module.sections.count > 3 %}
+                            <li class="section-item text-muted">
+                                <div class="section-icon">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </div>
+                                <span>y {{ module.sections.count|add:"-3" }} secciones más...</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% if module.essay_test %}
+                            <li class="section-item">
+                                <div class="section-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <a href="{% url 'courses:essay_test_start' module.essay_test.id %}" class="section-link">
+                                    {{ module.essay_test.title }}
+                                </a>
+                                <span class="badge test-badge">Test final</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    
+                    <a href="{% url 'courses:module_detail' module.id %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-angle-right me-2"></i>Ver módulo
+                    </a>
+                {% else %}
+                    <!-- Module is locked -->
+                    <div class="text-center py-3">
+                        <i class="fas fa-lock fa-2x text-muted mb-2"></i>
+                        <p class="mb-0">Este módulo está bloqueado. Complete los módulos anteriores para desbloquearlo.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Este curso aún no tiene módulos disponibles.
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Course Content Modal -->
+<div class="modal fade" id="courseContentModal" tabindex="-1" aria-labelledby="courseContentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="courseContentModalLabel">Contenido completo del curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="courseContentAccordion">
+                    {% for module in modules %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ module.id }}">
+                                <button class="accordion-button {% if forloop.counter > 1 %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ module.id }}" aria-expanded="{% if forloop.counter == 1 %}true{% else %}false{% endif %}" aria-controls="collapse{{ module.id }}">
+                                    <div class="d-flex justify-content-between w-100 me-3">
+                                        <span>Módulo {{ forloop.counter }}: {{ module.title }}</span>
+                                        <span class="badge bg-secondary">{{ module.sections.count }} secciones</span>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ module.id }}" class="accordion-collapse collapse {% if forloop.counter == 1 %}show{% endif %}" aria-labelledby="heading{{ module.id }}" data-bs-parent="#courseContentAccordion">
+                                <div class="accordion-body p-0">
+                                    <ul class="list-group list-group-flush">
+                                        {% for section in module.sections.all %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <i class="fas fa-file-alt me-2 text-primary"></i>
+                                                    {{ section.title }}
+                                                </div>
+                                                {% if section in completed_sections %}
+                                                    <span class="badge bg-success">Completada</span>
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                        
+                                        {% if module.essay_test %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <i class="fas fa-file-alt me-2 text-info"></i>
+                                                    {{ module.essay_test.title }}
+                                                </div>
+                                                <span class="badge bg-info">Test final</span>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Eliminación de Pregunta - Estudia Rápido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+    
+    .question-info {
+        background-color: var(--light);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+    }
+    
+    .course-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .module-badge {
+        background-color: var(--secondary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        margin-left: 10px;
+    }
+    
+    .test-badge {
+        background-color: #17a2b8;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        margin-left: 10px;
+    }
+    
+    .question-type-badge {
+        display: inline-block;
+        font-size: 0.8rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        margin-left: 10px;
+    }
+    
+    .question-box {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-left: 4px solid var(--primary);
+        border-radius: 4px;
+        margin-top: 15px;
+    }
+    
+    .answers-warning {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin-top: 15px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="delete-container">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">Cursos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_module_list' question.test.module.course.slug %}">{{ question.test.module.course.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses:admin_essay_test_update' question.test.id %}">{{ question.test.title }}</a></li>
+                <li class="breadcrumb-item active">Eliminar Pregunta</li>
+            </ol>
+        </nav>
+        
+        <div class="text-center mb-4">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1 class="mb-3">Confirmar Eliminación</h1>
+            <p class="lead">¿Estás seguro de que deseas eliminar esta pregunta de desarrollo?</p>
+        </div>
+        
+        <div class="alert alert-danger mb-4">
+            <p class="mb-0">
+                <strong>Advertencia:</strong> Esta acción eliminará permanentemente la pregunta y todas las respuestas de los estudiantes asociadas a ella. Esta acción no se puede deshacer.
+            </p>
+        </div>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <span class="course-badge">
+                        <i class="fas fa-book me-1"></i>{{ question.test.module.course.title }}
+                    </span>
+                    <span class="module-badge">
+                        <i class="fas fa-cube me-1"></i>{{ question.test.module.title }}
+                    </span>
+                    <span class="test-badge">
+                        <i class="fas fa-file-alt me-1"></i>{{ question.test.title }}
+                    </span>
+                </div>
+                
+                <div class="question-info">
+                    <h3 class="mb-2">
+                        Pregunta #{{ question.order }}
+                        <span class="question-type-badge">
+                            {% if question.question_type == 'case_study' %}
+                                <i class="fas fa-bookmark me-1"></i>Estudio de caso
+                            {% else %}
+                                <i class="fas fa-question-circle me-1"></i>Regular
+                            {% endif %}
+                        </span>
+                    </h3>
+                    
+                    <div class="question-box">
+                        <p>{{ question.question_text }}</p>
+                    </div>
+                    
+                    {% with answer_count=question.answers.count %}
+                        {% if answer_count > 0 %}
+                            <div class="answers-warning">
+                                <p class="mb-0">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <strong>Atención:</strong> Esta pregunta tiene {{ answer_count }} respuesta{{ answer_count|pluralize }} de estudiantes. Al eliminar la pregunta, también se eliminarán todas estas respuestas y evaluaciones.
+                                </p>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'courses:admin_essay_test_update' question.test.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-2"></i>Confirmar Eliminación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
